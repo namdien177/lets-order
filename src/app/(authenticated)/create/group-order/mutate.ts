@@ -1,6 +1,7 @@
 import { useMutation } from "@tanstack/react-query";
 import { z } from "zod";
 import getKy from "@/lib/http";
+import useAuthKy from "@/lib/http/useAuthKy";
 
 export const groupOrderCreateSchema = z.object({
   name: z.string().max(60).min(3),
@@ -10,10 +11,11 @@ export const groupOrderCreateSchema = z.object({
 export type GroupOrderCreate = z.infer<typeof groupOrderCreateSchema>;
 
 const useCreateGroupOrder = () => {
+  const authKy = useAuthKy(getKy());
   return useMutation({
     mutationKey: ["create-group-order"],
-    mutationFn: (payload: GroupOrderCreate) =>
-      getKy().post("/api/group-order", { json: payload }).json<{
+    mutationFn: async (payload: GroupOrderCreate) =>
+      (await authKy()).post("/api/group-order", { json: payload }).json<{
         data: { id: number };
       }>(),
   });

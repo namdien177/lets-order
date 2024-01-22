@@ -34,7 +34,7 @@ const FormCreateGroupOrder = ({ className }: Props) => {
       data: { id },
     } = await mutateAsync(data);
 
-    router.push(`/g/${id}}`);
+    router.push(`/g/${id}`);
   }
 
   return (
