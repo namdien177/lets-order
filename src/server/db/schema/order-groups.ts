@@ -1,6 +1,8 @@
-import { mysqlTable } from "@/server/db/schema/_core";
+import { mysqlTable } from "./_core";
 import { bigint, index, timestamp, varchar } from "drizzle-orm/mysql-core";
-import { sql } from "drizzle-orm";
+import { relations, sql } from "drizzle-orm";
+import { OrderProducts } from "./order-products";
+import { OrderEvents } from "./order-events";
 
 export const OrderGroups = mysqlTable(
   "order_groups",
@@ -19,5 +21,10 @@ export const OrderGroups = mysqlTable(
     nameIndex: index("name_idx").on(example.name),
   }),
 );
+
+export const OrderGroupRelations = relations(OrderGroups, ({ many }) => ({
+  products: many(OrderProducts),
+  events: many(OrderEvents),
+}));
 
 export type OrderGroup = typeof OrderGroups.$inferSelect;

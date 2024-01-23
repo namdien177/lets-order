@@ -11,7 +11,7 @@ const GroupBuyNavigationBar = async ({ id, ownerClerkId, name }: Props) => {
   return (
     <div className={"sticky inset-x-0 top-0 flex items-center gap-4 py-2"}>
       <Item href={baseHref}>What&apos;s new</Item>
-      <Item href={`${baseHref}/member`}>Members</Item>
+      <Item href={`${baseHref}/menu`}>Menu</Item>
       <Item href={`${baseHref}/history`}>History</Item>
 
       <div className={"flex-1"} />
