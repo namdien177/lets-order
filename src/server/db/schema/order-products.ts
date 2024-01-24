@@ -38,6 +38,10 @@ export const OrderProductRelations = relations(
       fields: [OrderProducts.originalId],
       references: [OrderProducts.id],
     }),
+    oldProduct: one(OrderProducts, {
+      fields: [OrderProducts.originalId],
+      references: [OrderProducts.id],
+    }),
     orderEvents: many(OrderEventProducts),
   }),
 );

@@ -1,7 +1,8 @@
 import { relations, sql } from "drizzle-orm";
-import { varchar, timestamp, bigint } from "drizzle-orm/mysql-core";
+import { bigint, timestamp, varchar } from "drizzle-orm/mysql-core";
 import { mysqlTable } from "./_core";
 import { OrderEventProducts } from "./order-event-products";
+import { OrderGroups } from "@/server/db/schema/order-groups";
 
 export const ORDER_EVENT_STATUS = [
   "CANCELLED",
@@ -25,9 +26,9 @@ export const OrderEvents = mysqlTable("order_events", {
 });
 
 export const OrderEventRelations = relations(OrderEvents, ({ one, many }) => ({
-  orderGroup: one(OrderEvents, {
+  orderGroup: one(OrderGroups, {
     fields: [OrderEvents.orderGroupId],
-    references: [OrderEvents.id],
+    references: [OrderGroups.id],
   }),
   receivedOrders: many(OrderEventProducts),
 }));
