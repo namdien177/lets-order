@@ -9,23 +9,26 @@ import { buttonVariants } from "@/components/ui/button";
 export const Item = ({
   href,
   exact = "prefix",
+  className,
   children,
 }: PropsWithChildren<{
   href: string;
   exact?: HrefMatchType;
+  className?: string;
 }>) => {
   const pathName = usePathname();
+  const isMatched = isMatchingPath(pathName, href, exact);
 
   return (
-    <div
-      className={cn(isMatchingPath(pathName, href, exact) ? "border-b-2" : "")}
-    >
+    <div className={cn(isMatched ? "border-b-2" : "")}>
       <Link
         href={href}
         className={cn(
           buttonVariants({
             variant: "ghost",
           }),
+          isMatched ? "font-bold" : "",
+          className,
         )}
       >
         {children}

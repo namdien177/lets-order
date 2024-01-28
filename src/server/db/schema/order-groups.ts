@@ -3,6 +3,7 @@ import { bigint, index, timestamp, varchar } from "drizzle-orm/mysql-core";
 import { relations, sql } from "drizzle-orm";
 import { OrderProducts } from "./order-products";
 import { OrderEvents } from "./order-events";
+import { OrderGroupMembers } from "@/server/db/schema/order-group-member";
 
 export const OrderGroups = mysqlTable(
   "order_groups",
@@ -25,6 +26,7 @@ export const OrderGroups = mysqlTable(
 export const OrderGroupRelations = relations(OrderGroups, ({ many }) => ({
   products: many(OrderProducts),
   events: many(OrderEvents),
+  members: many(OrderGroupMembers),
 }));
 
 export type OrderGroup = typeof OrderGroups.$inferSelect;

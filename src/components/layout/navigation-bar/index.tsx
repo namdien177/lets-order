@@ -13,7 +13,7 @@ import { Plus } from "lucide-react";
 
 const NavigationBar = () => {
   return (
-    <div className="sticky top-0 flex h-16 items-center border-b px-4">
+    <div className="sticky top-0 flex h-16 items-center border-b bg-white px-4">
       <NavigationLogo />
       <NavigationItems className="mx-6" />
       <div className="ml-auto flex items-center gap-4">

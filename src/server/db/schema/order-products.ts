@@ -13,13 +13,10 @@ export const OrderProducts = mysqlTable(
     description: varchar("description", { length: 256 }),
     price: bigint("price", { mode: "number" }).notNull(),
     originalId: bigint("original_id", { mode: "number" }),
-    availability: bigint("availability", { mode: "number" })
-      .default(sql`0`)
-      .notNull(),
     createdAt: timestamp("created_at")
       .default(sql`CURRENT_TIMESTAMP`)
       .notNull(),
-    updatedAt: timestamp("updatedAt").onUpdateNow(),
+    updatedAt: timestamp("updatedAt"),
     deletedAt: timestamp("deleted_at"),
   },
   (example) => ({

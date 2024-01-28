@@ -23,7 +23,7 @@ export default function RootLayout({
   return (
     <RootProvider>
       <html lang="en">
-        <body className={`font-sans ${inter.variable}`}>
+        <body className={`bg-gray-100 font-sans ${inter.variable}`}>
           <NavigationBar />
           {children}
         </body>
