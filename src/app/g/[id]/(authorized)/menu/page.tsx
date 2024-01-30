@@ -53,11 +53,37 @@ const Page = async ({ params: { id } }: PageProps) => {
         <div
           key={product.id}
           className={
-            "flex flex-col gap-2 rounded-md bg-background p-4 shadow-md"
+            "flex items-center gap-4 rounded-md bg-background p-4 shadow-md"
           }
         >
-          <h2 className={"text-lg font-bold text-primary"}>{product.name}</h2>
-          <p className={"text-gray-400"}>{product.description}</p>
+          <div className="flex flex-1 flex-col">
+            <h2 className={"text-2xl font-bold text-primary"}>
+              {product.name}
+            </h2>
+            <p className={"text-gray-400"}>{product.description}</p>
+          </div>
+
+          <p className={"text-4xl text-gray-600"}>
+            {Intl.NumberFormat("vi", { currency: "vnd" }).format(product.price)}
+            <small className="text-sm">VND</small>
+          </p>
+
+          {isOwner && (
+            <div className={"flex gap-2"}>
+              <Link
+                href={`/g/${groupId}/menu/new?item_id=${product.id}`}
+                className={buttonVariants()}
+              >
+                Edit
+              </Link>
+              {/* <Link
+                href={`/g/${groupId}/menu/${product.id}/delete`}
+                className={buttonVariants({ variant: "ghost" })}
+              >
+                Delete
+              </Link> */}
+            </div>
+          )}
         </div>
       ))}
     </div>

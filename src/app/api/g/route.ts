@@ -1,33 +1,29 @@
-import { type NextRequest, NextResponse } from "next/server";
+import { type NextRequest } from "next/server";
 import { groupOrderCreateSchema } from "@/app/(authenticated)/create/group-order/mutate";
 import { db } from "@/server/db";
 import { OrderGroups } from "@/server/db/schema";
 import { auth } from "@clerk/nextjs";
 import { LogErrorAPI } from "@/lib/server/error-log/api.error-log";
+import {
+  ResponseAsJson,
+  ResponseAsServerError,
+  ResponseAsUnauthenticated,
+  ResponseAsValidationError,
+} from "@/lib/server/response";
 
+/**
+ * API endpoint for creating a group order
+ */
 export const POST = async (req: NextRequest) => {
   const validatePayload = groupOrderCreateSchema.safeParse(await req.json());
   const { userId } = auth();
 
   if (!userId) {
-    return NextResponse.json(
-      {
-        message: "Unauthenticated",
-      },
-      { status: 401 },
-    );
+    return ResponseAsUnauthenticated();
   }
 
   if (!validatePayload.success) {
-    return NextResponse.json(
-      {
-        message: "Invalid payload",
-        error: validatePayload.error.flatten(),
-      },
-      {
-        status: 400,
-      },
-    );
+    return ResponseAsValidationError(validatePayload.error.flatten());
   }
 
   try {
@@ -38,29 +34,11 @@ export const POST = async (req: NextRequest) => {
       ownerClerkId: userId,
     });
 
-    console.log(createInstance);
-    return NextResponse.json(
-      {
-        message: "Success",
-        data: {
-          id: Number(createInstance.insertId),
-        },
-      },
-      {
-        status: 200,
-      },
-    );
+    return ResponseAsJson({
+      id: Number(createInstance.insertId),
+    });
   } catch (e) {
-    LogErrorAPI(e, "POST /api/group-order");
-
-    return NextResponse.json(
-      {
-        message: "Server Error",
-        error: e,
-      },
-      {
-        status: 500,
-      },
-    );
+    LogErrorAPI(e, "POST /api/g");
+    return ResponseAsServerError((e as Record<string, unknown>).message);
   }
 };

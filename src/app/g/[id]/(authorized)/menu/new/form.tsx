@@ -8,8 +8,9 @@ import { type Nullish } from "@/lib/types/helper";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { type ProductUpsert, productUpsertSchema } from "./schema";
-import upsertAction from "@/app/g/[id]/(authorized)/menu/new/action";
 import ErrorField from "@/components/form/error-field";
+import { useUpsertItem } from "./mutation";
+import { useRouter } from "next/navigation";
 
 type Props = {
   groupId: number;
@@ -27,6 +28,9 @@ const GroupItemForm = ({
   original: originalProduct,
   className,
 }: Props) => {
+  const router = useRouter();
+  const { mutateAsync: upsertProduct } = useUpsertItem(groupId);
+
   const {
     register,
     handleSubmit,
@@ -38,13 +42,18 @@ const GroupItemForm = ({
       description: originalProduct?.description ?? undefined,
       price: originalProduct?.price,
       originalId: originalProduct?.id,
-      orderGroupId: groupId,
     },
   });
 
   async function onSubmit(data: ProductUpsert) {
     console.log(data);
-    await upsertAction(data);
+    try {
+      const { id } = await upsertProduct(data);
+      console.log("Created product with id", id);
+      return router.push(`/g/${groupId}/menu`);
+    } catch (e) {
+      console.error(e);
+    }
   }
 
   return (
