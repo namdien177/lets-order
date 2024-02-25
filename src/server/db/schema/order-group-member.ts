@@ -1,31 +1,25 @@
-import { mysqlTable } from "./_core";
-import {
-  bigint,
-  mysqlEnum,
-  primaryKey,
-  timestamp,
-  varchar,
-} from "drizzle-orm/mysql-core";
+import { createDbTable } from "./_core";
 import { relations, sql } from "drizzle-orm";
 import { OrderGroups } from "@/server/db/schema/order-groups";
+import { integer, primaryKey, text } from "drizzle-orm/sqlite-core";
 
 export const MEMBER_STATUS = ["requesting", "active", "blacklisted"] as const;
 export type MemberStatus = (typeof MEMBER_STATUS)[number];
 
-export const OrderGroupMembers = mysqlTable(
+export const OrderGroupMembers = createDbTable(
   "order_group_members",
   {
-    orderGroupId: bigint("order_group_id", { mode: "number" }).notNull(),
-    memberClerkId: varchar("member_clerk_id", { length: 256 }).notNull(),
-    name: varchar("name", { length: 256 }).notNull(),
-    avatar: varchar("avatar", { length: 256 }).notNull(),
-    status: mysqlEnum("status", MEMBER_STATUS).notNull(),
-    requestJoiningAt: timestamp("request_joining_at")
+    orderGroupId: integer("order_group_id", { mode: "number" }).notNull(),
+    memberClerkId: text("member_clerk_id", { length: 256 }).notNull(),
+    name: text("name", { length: 256 }).notNull(),
+    avatar: text("avatar", { length: 256 }).notNull(),
+    status: text("status", { enum: MEMBER_STATUS }).notNull(),
+    requestJoiningAt: text("request_joining_at")
       .default(sql`CURRENT_TIMESTAMP`)
       .notNull(),
-    joinedAt: timestamp("joined_at"),
-    blacklistedAt: timestamp("blacklisted_at"),
-    updatedAt: timestamp("updatedAt").onUpdateNow(),
+    joinedAt: text("joined_at"),
+    blacklistedAt: text("blacklisted_at"),
+    updatedAt: text("updatedAt"),
   },
   (example) => ({
     primaryKey: primaryKey({

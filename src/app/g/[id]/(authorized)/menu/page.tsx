@@ -4,6 +4,8 @@ import { auth } from "@clerk/nextjs";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button";
+import DeleteProductButton from "@/app/g/[id]/(authorized)/menu/trigger";
+import { Trash } from "lucide-react";
 
 type PageProps = NextPageProps<{
   id: string;
@@ -69,19 +71,16 @@ const Page = async ({ params: { id } }: PageProps) => {
           </p>
 
           {isOwner && (
-            <div className={"flex gap-2"}>
+            <div className={"flex items-center gap-2"}>
               <Link
                 href={`/g/${groupId}/menu/new?item_id=${product.id}`}
                 className={buttonVariants()}
               >
                 Edit
               </Link>
-              {/* <Link
-                href={`/g/${groupId}/menu/${product.id}/delete`}
-                className={buttonVariants({ variant: "ghost" })}
-              >
-                Delete
-              </Link> */}
+              <DeleteProductButton groupId={groupId} id={product.id}>
+                <Trash size={24} />
+              </DeleteProductButton>
             </div>
           )}
         </div>

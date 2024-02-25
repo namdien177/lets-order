@@ -6,6 +6,14 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+export function isNullish(value: unknown): value is null | undefined {
+  return value === null || value === undefined;
+}
+
+export function numberPadding(num: number, length = 2) {
+  return num.toString().padStart(length, "0");
+}
+
 export type HrefMatchType = "exact" | "prefix";
 
 export function isMatchingPath(

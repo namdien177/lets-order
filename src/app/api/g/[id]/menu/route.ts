@@ -50,17 +50,24 @@ export const POST = async (
 
   // create product
   try {
-    const result = await db.insert(OrderProducts).values({
-      name: product.name,
-      description: product.description,
-      price: product.price,
-      originalId: product.originalId,
-      orderGroupId: groupId,
-    });
+    const [result] = await db
+      .insert(OrderProducts)
+      .values({
+        name: product.name,
+        description: product.description,
+        price: product.price,
+        originalId: product.originalId,
+        orderGroupId: groupId,
+      })
+      .returning();
+
+    if (!result) {
+      throw new Error("Failed to create product");
+    }
 
     revalidatePath(`/g/${groupId}/menu`);
     return ResponseAsJson({
-      id: Number(result.insertId),
+      id: Number(result.id),
     });
   } catch (e) {
     LogErrorAPI(e, "POST /api/g/[id]/menu");

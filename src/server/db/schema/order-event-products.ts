@@ -1,28 +1,22 @@
 import { OrderProducts } from "./order-products";
 import { OrderEvents } from "./order-events";
-import {
-  bigint,
-  int,
-  primaryKey,
-  timestamp,
-  varchar,
-} from "drizzle-orm/mysql-core";
-import { mysqlTable } from "./_core";
+import { integer, primaryKey, text } from "drizzle-orm/sqlite-core";
+import { createDbTable } from "./_core";
 import { relations, sql } from "drizzle-orm";
 
-export const OrderEventProducts = mysqlTable(
+export const OrderEventProducts = createDbTable(
   "order_event_products",
   {
-    clerkId: varchar("clerk_id", { length: 256 }).notNull(),
-    orderEventId: bigint("order_event_id", { mode: "number" }).notNull(),
-    orderProductId: bigint("order_product_id", { mode: "number" }).notNull(),
-    amount: int("amount", { unsigned: true }).notNull(),
-    productReceivedAt: timestamp("product_received_at"),
-    paymentReceivedAt: timestamp("payment_received_at"),
-    createdAt: timestamp("created_at")
+    clerkId: text("clerk_id", { length: 256 }).notNull(),
+    orderEventId: integer("order_event_id", { mode: "number" }).notNull(),
+    orderProductId: integer("order_product_id", { mode: "number" }).notNull(),
+    amount: integer("amount", { mode: "number" }).notNull(),
+    productReceivedAt: integer("product_received_at", { mode: "timestamp_ms" }),
+    paymentReceivedAt: integer("payment_received_at", { mode: "timestamp_ms" }),
+    createdAt: text("created_at")
       .default(sql`CURRENT_TIMESTAMP`)
       .notNull(),
-    updatedAt: timestamp("updatedAt").onUpdateNow(),
+    updatedAt: text("updated_at"),
   },
   (table) => ({
     primaryKey: primaryKey({

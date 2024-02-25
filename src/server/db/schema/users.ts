@@ -1,18 +1,18 @@
-import { bigint, index, timestamp, varchar } from "drizzle-orm/mysql-core";
+import { index, integer, text } from "drizzle-orm/sqlite-core";
 import { sql } from "drizzle-orm";
 
-import { mysqlTable } from "@/server/db/schema/_core";
+import { createDbTable } from "@/server/db/schema/_core";
 
-export const Users = mysqlTable(
+export const Users = createDbTable(
   "users",
   {
-    id: bigint("id", { mode: "number" }).primaryKey().autoincrement(),
-    clerkId: varchar("clerk_id", { length: 256 }),
-    displayName: varchar("display_name", { length: 256 }),
-    createdAt: timestamp("created_at")
+    id: integer("id", { mode: "number" }).primaryKey({ autoIncrement: true }),
+    clerkId: text("clerk_id", { length: 256 }),
+    displayName: text("display_name", { length: 256 }),
+    createdAt: text("created_at")
       .default(sql`CURRENT_TIMESTAMP`)
       .notNull(),
-    updatedAt: timestamp("updatedAt").onUpdateNow(),
+    updatedAt: text("updatedAt"),
   },
   (example) => ({
     displayNameIndex: index("display_name_idx").on(example.displayName),

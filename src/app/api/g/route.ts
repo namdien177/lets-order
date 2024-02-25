@@ -27,15 +27,22 @@ export const POST = async (req: NextRequest) => {
   }
 
   try {
-    const createInstance = await db.insert(OrderGroups).values({
-      name: validatePayload.data.name,
-      description: validatePayload.data.description,
-      inviteCode: validatePayload.data.inviteCode,
-      ownerClerkId: userId,
-    });
+    const [createInstance] = await db
+      .insert(OrderGroups)
+      .values({
+        name: validatePayload.data.name,
+        description: validatePayload.data.description,
+        inviteCode: validatePayload.data.inviteCode,
+        ownerClerkId: userId,
+      })
+      .returning();
+
+    if (!createInstance) {
+      throw new Error("Failed to create a group order");
+    }
 
     return ResponseAsJson({
-      id: Number(createInstance.insertId),
+      id: Number(createInstance.id),
     });
   } catch (e) {
     LogErrorAPI(e, "POST /api/g");

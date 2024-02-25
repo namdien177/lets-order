@@ -1,9 +1,9 @@
 "use client";
 
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
+import { Input, INPUT_CLASSNAME } from "@/components/ui/input";
 import { type Nullish } from "@/lib/types/helper";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,7 @@ import { type ProductUpsert, productUpsertSchema } from "./schema";
 import ErrorField from "@/components/form/error-field";
 import { useUpsertItem } from "./mutation";
 import { useRouter } from "next/navigation";
+import { NumericFormat } from "react-number-format";
 
 type Props = {
   groupId: number;
@@ -33,6 +34,7 @@ const GroupItemForm = ({
 
   const {
     register,
+    control,
     handleSubmit,
     formState: { errors },
   } = useForm<ProductUpsert>({
@@ -89,11 +91,40 @@ const GroupItemForm = ({
         <Label className="text-lg font-bold text-primary" htmlFor="price">
           Price
         </Label>
-        <Input
-          id="price"
-          type="number"
-          placeholder="Price"
-          {...register("price", { valueAsNumber: true })}
+        <Controller
+          control={control}
+          name="price"
+          render={({ field: { onChange, ref, ...fields } }) => (
+            <>
+              <NumericFormat
+                id="price"
+                placeholder="Price"
+                {...fields}
+                getInputRef={ref}
+                className={INPUT_CLASSNAME}
+                thousandSeparator={","}
+                onValueChange={(values) => {
+                  onChange(values.floatValue ?? values.value);
+                }}
+              />
+              {/*<Input*/}
+              {/*  id="price"*/}
+              {/*  type="number"*/}
+              {/*  placeholder="Price"*/}
+              {/*  {...fields}*/}
+              {/*  value={numericFormatter(String(value), {*/}
+              {/*    thousandSeparator: ",",*/}
+              {/*  })}*/}
+              {/*  onChange={(e) => {*/}
+              {/*    onChange(*/}
+              {/*      Number.isNaN(Number(e.target.value))*/}
+              {/*        ? e.target.value*/}
+              {/*        : Number(e.target.value),*/}
+              {/*    );*/}
+              {/*  }}*/}
+              {/*/>*/}
+            </>
+          )}
         />
         <ErrorField errors={errors} name={"price"} />
       </div>

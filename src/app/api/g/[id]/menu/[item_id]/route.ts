@@ -63,7 +63,7 @@ export const DELETE = async (
     await db
       .update(OrderProducts)
       .set({
-        deletedAt: new Date(),
+        deletedAt: new Date().toISOString(),
       })
       .where(
         and(eq(OrderProducts.id, item_id), eq(OrderProducts.orderGroupId, id)),

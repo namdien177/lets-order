@@ -1,26 +1,26 @@
-import { bigint, index, timestamp, varchar } from "drizzle-orm/mysql-core";
-import { mysqlTable } from "./_core";
+import { index, integer, text } from "drizzle-orm/sqlite-core";
+import { createDbTable } from "./_core";
 import { relations, sql } from "drizzle-orm";
 import { OrderGroups } from ".";
 import { OrderEventProducts } from "./order-event-products";
 
-export const OrderProducts = mysqlTable(
+export const OrderProducts = createDbTable(
   "order_products",
   {
-    id: bigint("id", { mode: "number" }).primaryKey().autoincrement(),
-    orderGroupId: bigint("order_group_id", { mode: "number" }).notNull(),
-    name: varchar("name", { length: 256 }).notNull(),
-    description: varchar("description", { length: 256 }),
-    price: bigint("price", { mode: "number" }).notNull(),
-    originalId: bigint("original_id", { mode: "number" }),
-    createdAt: timestamp("created_at")
+    id: integer("id", { mode: "number" }).primaryKey({ autoIncrement: true }),
+    orderGroupId: integer("order_group_id", { mode: "number" }).notNull(),
+    name: text("name", { length: 256 }).notNull(),
+    description: text("description", { length: 256 }),
+    price: integer("price", { mode: "number" }).notNull(),
+    originalId: integer("original_id", { mode: "number" }),
+    createdAt: text("created_at")
       .default(sql`CURRENT_TIMESTAMP`)
       .notNull(),
-    updatedAt: timestamp("updatedAt"),
-    deletedAt: timestamp("deleted_at"),
+    updatedAt: text("updatedAt"),
+    deletedAt: text("deleted_at"),
   },
   (example) => ({
-    nameIndex: index("name_idx").on(example.name),
+    nameIndex: index("product_name_idx").on(example.name),
   }),
 );
 
