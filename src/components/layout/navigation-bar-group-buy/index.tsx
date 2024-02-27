@@ -2,7 +2,7 @@ import { Item } from "./item";
 import { type OrderGroup, OrderProducts } from "@/server/db/schema";
 import { Settings } from "lucide-react";
 import { db } from "@/server/db";
-import { count, eq } from "drizzle-orm";
+import { and, count, eq, isNull } from "drizzle-orm";
 import { Badge } from "@/components/ui/badge";
 
 type Props = Pick<OrderGroup, "id" | "ownerClerkId" | "name"> & {
@@ -17,7 +17,9 @@ const GroupBuyNavigationBar = async ({ id, isTheOwner }: Props) => {
       totalProducts: count(OrderProducts.id),
     })
     .from(OrderProducts)
-    .where(eq(OrderProducts.orderGroupId, id))
+    .where(
+      and(eq(OrderProducts.orderGroupId, id), isNull(OrderProducts.deletedAt)),
+    )
     .groupBy(OrderProducts.orderGroupId);
   let totalProducts = 0;
   if (result) {
@@ -33,7 +35,7 @@ const GroupBuyNavigationBar = async ({ id, isTheOwner }: Props) => {
         <span>Menu</span>
         <Badge>{totalProducts}</Badge>
       </Item>
-      <Item href={`${baseHref}/history`}>History</Item>
+      <Item href={`${baseHref}/event`}>Events</Item>
 
       <div className={"flex-1"} />
 
