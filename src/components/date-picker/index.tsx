@@ -16,6 +16,7 @@ type Props = {
   onBlur?: () => void;
   placeholder?: ReactNode;
   className?: string;
+  disabled?: boolean;
 } & (
   | {
       clearable: true;
@@ -35,6 +36,7 @@ const DatePicker = ({
   onBlur,
   clearable,
   onClearing,
+  disabled,
 }: Props) => {
   return (
     <Popover>
@@ -47,6 +49,7 @@ const DatePicker = ({
             className,
           )}
           onBlur={onBlur}
+          disabled={disabled}
         >
           <CalendarIcon className="mr-2 h-4 w-4" />
           <span className={"flex-1"}>
@@ -58,6 +61,7 @@ const DatePicker = ({
                 "absolute right-0 top-1/2 -translate-y-1/2 transform border-none outline-none ring-0 hover:bg-transparent"
               }
               variant={"ghost"}
+              disabled={disabled}
               onClick={() =>
                 onClearing ? onClearing() : onSelected?.(undefined)
               }
@@ -74,6 +78,7 @@ const DatePicker = ({
           selected={value}
           onSelect={onSelected}
           initialFocus
+          disabled={disabled}
         />
       </PopoverContent>
     </Popover>

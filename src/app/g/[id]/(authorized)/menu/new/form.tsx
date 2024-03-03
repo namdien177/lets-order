@@ -30,7 +30,7 @@ const GroupItemForm = ({
   className,
 }: Props) => {
   const router = useRouter();
-  const { mutateAsync: upsertProduct } = useUpsertItem(groupId);
+  const { mutateAsync: upsertProduct, isPending } = useUpsertItem();
 
   const {
     register,
@@ -40,6 +40,7 @@ const GroupItemForm = ({
   } = useForm<ProductUpsert>({
     resolver: zodResolver(productUpsertSchema),
     defaultValues: {
+      groupId,
       name: originalProduct?.name,
       description: originalProduct?.description ?? undefined,
       price: originalProduct?.price,
@@ -50,8 +51,12 @@ const GroupItemForm = ({
   async function onSubmit(data: ProductUpsert) {
     console.log(data);
     try {
-      const { id } = await upsertProduct(data);
-      console.log("Created product with id", id);
+      const response = await upsertProduct(data);
+      if (!response.success) {
+        console.error(response.message);
+        return;
+      }
+      console.log("Created product with id", response.data);
       return router.push(`/g/${groupId}/menu`);
     } catch (e) {
       console.error(e);
@@ -94,42 +99,27 @@ const GroupItemForm = ({
         <Controller
           control={control}
           name="price"
-          render={({ field: { onChange, ref, ...fields } }) => (
-            <>
-              <NumericFormat
-                id="price"
-                placeholder="Price"
-                {...fields}
-                getInputRef={ref}
-                className={INPUT_CLASSNAME}
-                thousandSeparator={","}
-                onValueChange={(values) => {
-                  onChange(values.floatValue ?? values.value);
-                }}
-              />
-              {/*<Input*/}
-              {/*  id="price"*/}
-              {/*  type="number"*/}
-              {/*  placeholder="Price"*/}
-              {/*  {...fields}*/}
-              {/*  value={numericFormatter(String(value), {*/}
-              {/*    thousandSeparator: ",",*/}
-              {/*  })}*/}
-              {/*  onChange={(e) => {*/}
-              {/*    onChange(*/}
-              {/*      Number.isNaN(Number(e.target.value))*/}
-              {/*        ? e.target.value*/}
-              {/*        : Number(e.target.value),*/}
-              {/*    );*/}
-              {/*  }}*/}
-              {/*/>*/}
-            </>
+          render={({ field: { onChange, ref, value, ...fields } }) => (
+            <NumericFormat
+              id="price"
+              placeholder="Price"
+              value={value}
+              {...fields}
+              getInputRef={ref}
+              className={INPUT_CLASSNAME}
+              thousandSeparator={","}
+              onValueChange={(values) => {
+                onChange(values.floatValue ?? values.value);
+              }}
+            />
           )}
         />
         <ErrorField errors={errors} name={"price"} />
       </div>
 
-      <Button className={"self-end"}>{originalProduct ? "Edit" : "Add"}</Button>
+      <Button disabled={isPending} className={"self-end"}>
+        {originalProduct ? "Edit" : "Add"}
+      </Button>
     </form>
   );
 };

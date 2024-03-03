@@ -5,6 +5,7 @@ export const productUpsertSchema = z.object({
   description: z.string().max(255).optional(),
   price: z.number().min(0).int(),
   originalId: z.number().int().optional(),
+  groupId: z.number().min(0).int(),
 });
 
 export type ProductUpsert = z.infer<typeof productUpsertSchema>;
