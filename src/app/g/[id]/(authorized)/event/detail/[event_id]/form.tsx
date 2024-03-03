@@ -13,7 +13,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Controller, useForm, useWatch } from "react-hook-form";
-import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Loader2, Trash } from "lucide-react";
 import { cn, isNullish } from "@/lib/utils";
@@ -24,18 +23,6 @@ import DatePicker from "@/components/date-picker";
 import { TimeCompoundPicker } from "@/components/timepicker";
 import ErrorField from "@/components/form/error-field";
 import { useOrderEventMutation } from "@/app/g/[id]/(authorized)/event/detail/[event_id]/mutation";
-
-const eventStatusSchema = z.object({
-  status: z.enum([
-    ORDER_EVENT_STATUS.DRAFT,
-    ORDER_EVENT_STATUS.ACTIVE,
-    ORDER_EVENT_STATUS.COMPLETED,
-    ORDER_EVENT_STATUS.CANCELLED,
-  ]),
-  id: z.number(),
-});
-
-type EventStatusSchema = z.infer<typeof eventStatusSchema>;
 
 export const EventStatusForm = ({
   status: initialStatus,

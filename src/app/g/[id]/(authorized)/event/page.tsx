@@ -16,6 +16,7 @@ import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { type ColumnDef } from "@tanstack/react-table";
+import { cn } from "@/lib/utils";
 
 const pagePaginationURLSchema = z.object({
   page: z.coerce.number().min(1).optional(),
@@ -109,7 +110,28 @@ const Page = async ({ params: { id, ...paginationParams } }: PageProps) => {
             </Link>
           </div>
         )}
-        {activeEvent && <p>{activeEvent.name}</p>}
+        {activeEvent && (
+          <div className={"flex flex-col rounded-lg bg-background p-8 shadow"}>
+            <small className={"text-sm text-gray-500"}>Event Name</small>
+            <h1 className={"text-2xl font-semibold"}>{activeEvent.name}</h1>
+
+            {activeEvent.endingAt && (
+              <>
+                <small className={"mt-8 text-sm text-gray-500"}>
+                  Ending At
+                </small>
+                <p>{new Date(activeEvent.endingAt).toLocaleString()}</p>
+              </>
+            )}
+
+            <Link
+              href={`/g/${id}/event/detail/${activeEvent.id}`}
+              className={cn(buttonVariants(), "mt-8 gap-2 self-start")}
+            >
+              <span>View Event</span>
+            </Link>
+          </div>
+        )}
       </div>
 
       <hr />
