@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { cn, isNullish, numberPadding } from "@/lib/utils";
+import { type ReactNode } from "react";
 
 export const TIME_PICKER_MODE = {
   AM_PM: "am_pm",
@@ -70,7 +71,7 @@ export const HourDropdown = ({
   );
 };
 
-type MinuteDropdownProps = TimeElementProps<number> & {};
+type MinuteDropdownProps = TimeElementProps<number>;
 
 export const MinuteDropdown = ({
   value,
@@ -105,7 +106,7 @@ export const MinuteDropdown = ({
   );
 };
 
-type SecondDropdownProps = TimeElementProps<number> & {};
+type SixtyDropdownProps = TimeElementProps<number>;
 
 export const SecondDropdown = ({
   value,
@@ -113,7 +114,7 @@ export const SecondDropdown = ({
   placeholder,
   className,
   ...others
-}: SecondDropdownProps) => {
+}: SixtyDropdownProps) => {
   const seconds = Array.from({ length: 60 }, (_, i) => i);
 
   const onSecondChange = (second: string) => {
@@ -147,6 +148,14 @@ type TimeCompoundProps = {
   disabled?: boolean;
   className?: string;
   mode?: TimePickerMode;
+  labelClassName?:
+    | string
+    | {
+        [key in "hour" | "minute" | "second"]?: string;
+      };
+  labelChildren?: {
+    [key in "hour" | "minute" | "second"]?: ReactNode;
+  };
 };
 
 export const TimeCompoundPicker = ({
@@ -154,8 +163,24 @@ export const TimeCompoundPicker = ({
   onChange,
   className,
   mode = TIME_PICKER_MODE["24H"],
+  labelClassName,
+  labelChildren,
   ...others
 }: TimeCompoundProps) => {
+  let labelHourClassName: string;
+  let labelMinuteClassName: string;
+  let labelSecondClassName: string;
+
+  if (typeof labelClassName === "string") {
+    labelHourClassName = labelClassName;
+    labelMinuteClassName = labelClassName;
+    labelSecondClassName = labelClassName;
+  } else {
+    labelHourClassName = labelClassName?.hour ?? "";
+    labelMinuteClassName = labelClassName?.minute ?? "";
+    labelSecondClassName = labelClassName?.second ?? "";
+  }
+
   const onTimeChanged = (time: number, type: "hour" | "minute" | "second") => {
     if (!value) {
       return;
@@ -174,7 +199,9 @@ export const TimeCompoundPicker = ({
   return (
     <div className={cn("flex gap-4", className)}>
       <div className="flex flex-1 flex-col gap-2">
-        <Label>Hour</Label>
+        <Label className={labelHourClassName}>
+          {labelChildren?.hour ?? "Hour"}
+        </Label>
         <HourDropdown
           value={isNullish(value?.getHours()) ? undefined : value.getHours()}
           onChange={(hour) => onTimeChanged(hour, "hour")}
@@ -184,7 +211,9 @@ export const TimeCompoundPicker = ({
       </div>
 
       <div className="flex flex-1 flex-col gap-2">
-        <Label>Minute</Label>
+        <Label className={labelMinuteClassName}>
+          {labelChildren?.minute ?? "Minute"}
+        </Label>
         <MinuteDropdown
           value={
             isNullish(value?.getMinutes()) ? undefined : value.getMinutes()
@@ -195,7 +224,9 @@ export const TimeCompoundPicker = ({
       </div>
 
       <div className="flex flex-1 flex-col gap-2">
-        <Label>Second</Label>
+        <Label className={labelSecondClassName}>
+          {labelChildren?.second ?? "Second"}
+        </Label>
         <SecondDropdown
           value={
             isNullish(value?.getSeconds()) ? undefined : value.getSeconds()

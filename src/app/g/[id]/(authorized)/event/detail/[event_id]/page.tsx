@@ -3,10 +3,10 @@ import { z } from "zod";
 import { auth } from "@clerk/nextjs";
 import { redirect } from "next/navigation";
 import { db } from "@/server/db";
-import {
-  EventBasicInfo,
-  EventStatusForm,
-} from "@/app/g/[id]/(authorized)/event/detail/[event_id]/form";
+import EventStatusSelect from "@/components/event-detail/form/event-status-select";
+import EventBasicInfoForm from "@/components/event-detail/form/event-info-form";
+import EventDeletionBtn from "@/components/event-detail/form/event-deletion-btn";
+import { ORDER_EVENT_STATUS } from "@/server/db/schema";
 
 type PageProps = NextPageProps<{
   event_id: string;
@@ -41,8 +41,8 @@ const Page = async ({ params: { event_id, id } }: PageProps) => {
   }
 
   return (
-    <div className={"flex flex-col-reverse gap-4 md:flex-row md:items-start"}>
-      <EventBasicInfo
+    <div className={"relative flex flex-col gap-4 md:flex-row md:items-start"}>
+      <EventBasicInfoForm
         className={"flex-1"}
         initialData={{
           event_id: eventId,
@@ -53,11 +53,24 @@ const Page = async ({ params: { event_id, id } }: PageProps) => {
         eventStatus={eventInfo.status}
       />
 
-      <div className="flex w-full flex-col rounded-lg bg-background p-4 shadow-md sm:max-w-[300px]">
-        <div className="flex flex-col gap-1">
+      <div className="flex w-full flex-col gap-4 sm:max-w-[300px]">
+        <div className="flex flex-col gap-1 rounded-lg bg-background p-4 shadow-md">
           <small className="text-sm text-gray-500">Event Status</small>
-          <EventStatusForm id={eventInfo.id} status={eventInfo.status} />
+          <EventStatusSelect id={eventInfo.id} status={eventInfo.status} />
         </div>
+
+        {eventInfo.status !== ORDER_EVENT_STATUS.ACTIVE && (
+          <div className={"flex flex-col gap-1"}>
+            <p className={"text-sm font-bold text-destructive"}>Danger</p>
+            <small className={"text-gray-400"}>
+              The below action cannot be reverted!
+            </small>
+            <EventDeletionBtn
+              eventId={eventInfo.id}
+              status={eventInfo.status}
+            />
+          </div>
+        )}
       </div>
     </div>
   );

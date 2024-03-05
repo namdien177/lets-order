@@ -82,12 +82,7 @@ const Page = async ({ params: { id, ...paginationParams } }: PageProps) => {
   });
 
   const historyEvents = await db.query.OrderEvents.findMany({
-    where: (table, { eq, or }) =>
-      or(
-        eq(table.status, ORDER_EVENT_STATUS.COMPLETED),
-        eq(table.status, ORDER_EVENT_STATUS.CANCELLED),
-        eq(table.status, ORDER_EVENT_STATUS.DRAFT),
-      ),
+    where: (table, { ne }) => ne(table.status, ORDER_EVENT_STATUS.ACTIVE),
     orderBy: (table) => desc(table.createdAt),
     limit,
     offset: (page - 1) * limit,

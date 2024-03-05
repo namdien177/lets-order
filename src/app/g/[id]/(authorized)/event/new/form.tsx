@@ -47,7 +47,7 @@ const CreateEventForm = ({ groupId }: Props) => {
     if (result.success) {
       // redirect to event page
       toast.success("Event created");
-      return router.push(`/g/${groupId}/e/${result.data.id}`);
+      return router.push(`/g/${groupId}/event`);
     }
 
     toast.error(result.message);

@@ -7,6 +7,7 @@ import {
 } from "@/server/db/schema";
 import { db } from "@/server/db";
 import { auth } from "@clerk/nextjs";
+import { revalidatePath } from "next/cache";
 
 type CreateEventResponse =
   | {
@@ -50,6 +51,8 @@ export const createEvent = async (
       message: "Failed to create event",
     };
   }
+
+  revalidatePath(`/g/${event.orderGroupId}/event`);
 
   return {
     success: true,

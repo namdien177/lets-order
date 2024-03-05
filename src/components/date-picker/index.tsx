@@ -3,12 +3,12 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
-import { type ReactNode } from "react";
+import { type ReactNode, useState } from "react";
 
 type Props = {
   value?: Date;
@@ -17,6 +17,7 @@ type Props = {
   placeholder?: ReactNode;
   className?: string;
   disabled?: boolean;
+  closeOnSelect?: boolean;
 } & (
   | {
       clearable: true;
@@ -37,9 +38,11 @@ const DatePicker = ({
   clearable,
   onClearing,
   disabled,
+  closeOnSelect,
 }: Props) => {
+  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   return (
-    <Popover>
+    <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
       <PopoverTrigger asChild>
         <Button
           variant={"outline"}
@@ -56,19 +59,24 @@ const DatePicker = ({
             {value ? format(value, "PPP") : placeholder ?? ""}
           </span>
           {clearable && value && (
-            <Button
-              className={
-                "absolute right-0 top-1/2 -translate-y-1/2 transform border-none outline-none ring-0 hover:bg-transparent"
-              }
-              variant={"ghost"}
-              disabled={disabled}
+            <span
+              className={cn(
+                buttonVariants({
+                  variant: "ghost",
+                }),
+                "absolute right-0 top-1/2 -translate-y-1/2 transform border-none outline-none ring-0 hover:bg-transparent",
+              )}
               onClick={() =>
-                onClearing ? onClearing() : onSelected?.(undefined)
+                disabled
+                  ? onClearing
+                    ? onClearing()
+                    : onSelected?.(undefined)
+                  : undefined
               }
             >
               <span className="sr-only">Clear</span>
               <span aria-hidden>×</span>
-            </Button>
+            </span>
           )}
         </Button>
       </PopoverTrigger>
@@ -76,7 +84,10 @@ const DatePicker = ({
         <Calendar
           mode="single"
           selected={value}
-          onSelect={onSelected}
+          onSelect={(date) => {
+            onSelected?.(date);
+            closeOnSelect && setIsPopoverOpen(false);
+          }}
           initialFocus
           disabled={disabled}
         />
