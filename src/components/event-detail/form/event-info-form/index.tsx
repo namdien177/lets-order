@@ -96,6 +96,7 @@ const EventBasicInfoForm = ({
               placeholder={"Select a date"}
               value={field.value ?? undefined}
               onSelected={field.onChange}
+              onClearing={() => field.onChange(null)}
               disabled={field.disabled}
               closeOnSelect
             />

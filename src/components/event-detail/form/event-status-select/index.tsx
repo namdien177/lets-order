@@ -15,6 +15,7 @@ import {
 import { Loader2 } from "lucide-react";
 import { isNullish } from "@/lib/utils";
 import useOrderEventStatusMutation from "@/components/event-detail/mutations/useOrderEventStatus.mutation";
+import { toast } from "sonner";
 
 const EventStatusForm = ({
   status: initialStatus,
@@ -36,14 +37,21 @@ const EventStatusForm = ({
   const ableToCancel =
     status === ORDER_EVENT_STATUS.ACTIVE || status === ORDER_EVENT_STATUS.DRAFT;
 
+  const onStatusChange = async (status: OrderEventStatus) => {
+    const result = await mutateAsync({ id, status });
+    if (result.success) {
+      toast.success(result.message ?? "Event status updated");
+    } else {
+      toast.error(result.message);
+    }
+  };
+
   return (
     <div className={"flex items-center gap-4"}>
       <Select
         disabled={isPending}
         value={status}
-        onValueChange={(value) =>
-          mutateAsync({ id, status: value as OrderEventStatus })
-        }
+        onValueChange={(value) => onStatusChange(value as OrderEventStatus)}
       >
         <SelectTrigger className={className}>
           {isNullish(status) ? (

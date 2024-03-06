@@ -184,6 +184,9 @@ export const updateEventInfo = async (payload: EventBasicInfoSchema) => {
       .where(eq(OrderEvents.id, payload.event_id))
       .returning();
 
+    console.log("result", result);
+    console.log("result", payload);
+
     revalidatePath(
       `/g/${payload.id}/(authorized)/event/detail/${payload.event_id}`,
     );

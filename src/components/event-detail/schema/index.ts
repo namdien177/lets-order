@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { addMinutes, isAfter } from "date-fns";
+import { isNullish } from "@/lib/utils";
 
 export const eventBasicInfoSchema = z.object({
   event_id: z.number(),
@@ -9,8 +10,9 @@ export const eventBasicInfoSchema = z.object({
   endingAt: z.coerce
     .date()
     .nullable()
+    .optional()
     .refine((date) => {
-      if (!date) {
+      if (isNullish(date)) {
         return true;
       }
 

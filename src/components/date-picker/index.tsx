@@ -4,7 +4,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Button, buttonVariants } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { cn, isNullish } from "@/lib/utils";
 import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
@@ -40,6 +40,7 @@ const DatePicker = ({
   disabled,
   closeOnSelect,
 }: Props) => {
+  console.log(value);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   return (
     <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
@@ -56,27 +57,28 @@ const DatePicker = ({
         >
           <CalendarIcon className="mr-2 h-4 w-4" />
           <span className={"flex-1"}>
-            {value ? format(value, "PPP") : placeholder ?? ""}
+            {isNullish(value) ? placeholder ?? "" : format(value, "PPP")}
           </span>
           {clearable && value && (
-            <span
+            <div
               className={cn(
                 buttonVariants({
                   variant: "ghost",
                 }),
                 "absolute right-0 top-1/2 -translate-y-1/2 transform border-none outline-none ring-0 hover:bg-transparent",
               )}
-              onClick={() =>
-                disabled
-                  ? onClearing
-                    ? onClearing()
-                    : onSelected?.(undefined)
-                  : undefined
-              }
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                if (disabled) {
+                  return;
+                }
+                onClearing ? onClearing() : onSelected?.(undefined);
+              }}
             >
               <span className="sr-only">Clear</span>
               <span aria-hidden>×</span>
-            </span>
+            </div>
           )}
         </Button>
       </PopoverTrigger>
