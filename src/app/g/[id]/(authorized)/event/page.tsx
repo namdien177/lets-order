@@ -120,7 +120,7 @@ const Page = async ({ params: { id, ...paginationParams } }: PageProps) => {
             )}
 
             <Link
-              href={`/g/${id}/event/detail/${activeEvent.id}`}
+              href={`/g/${id}/event/view/${activeEvent.id}`}
               className={cn(buttonVariants(), "mt-8 gap-2 self-start")}
             >
               <span>View Event</span>
@@ -140,7 +140,7 @@ const Page = async ({ params: { id, ...paginationParams } }: PageProps) => {
             data={historyEvents}
             onSelect={async (row) => {
               "use server";
-              redirect(`/g/${id}/event/detail/${row.id}`);
+              redirect(`/g/${id}/event/view/${row.id}`);
             }}
           />
         </div>
