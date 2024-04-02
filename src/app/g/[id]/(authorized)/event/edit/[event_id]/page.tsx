@@ -7,6 +7,8 @@ import EventStatusSelect from "@/components/event-detail/form/event-status-selec
 import EventBasicInfoForm from "@/components/event-detail/form/event-info-form";
 import EventDeletionBtn from "@/components/event-detail/form/event-deletion-btn";
 import { ORDER_EVENT_STATUS } from "@/server/db/schema";
+import Link from "next/link";
+import { buttonVariants } from "@/components/ui/button";
 
 type PageProps = NextPageProps<{
   event_id: string;
@@ -41,19 +43,12 @@ const Page = async ({ params: { event_id, id } }: PageProps) => {
   }
 
   return (
-    <div className={"relative flex flex-col gap-4 md:flex-row md:items-start"}>
-      <EventBasicInfoForm
-        className={"flex-1"}
-        initialData={{
-          event_id: eventId,
-          id: groupId,
-          name: eventInfo.name,
-          endingAt: eventInfo.endingAt,
-        }}
-        eventStatus={eventInfo.status}
-      />
-
-      <div className="flex w-full flex-col gap-4 sm:max-w-[300px]">
+    <div
+      className={
+        "relative flex flex-col-reverse gap-4 md:flex-row md:items-start"
+      }
+    >
+      <div className="flex w-full flex-col gap-4 md:max-w-[300px]">
         <div className="flex flex-col gap-1 rounded-lg bg-background p-4 shadow-md">
           <small className="text-sm text-gray-500">Event Status</small>
           <EventStatusSelect id={eventInfo.id} status={eventInfo.status} />
@@ -71,7 +66,27 @@ const Page = async ({ params: { event_id, id } }: PageProps) => {
             />
           </div>
         )}
+
+        <hr />
+
+        <Link
+          href={`/g/${groupId}/event/view/${eventId}`}
+          className={buttonVariants()}
+        >
+          View this event
+        </Link>
       </div>
+
+      <EventBasicInfoForm
+        className={"flex-1"}
+        initialData={{
+          event_id: eventId,
+          id: groupId,
+          name: eventInfo.name,
+          endingAt: eventInfo.endingAt,
+        }}
+        eventStatus={eventInfo.status}
+      />
     </div>
   );
 };

@@ -3,11 +3,12 @@
 import { type PageProps } from "@/app/g/[id]/(authorized)/event/view/[event_id]/typing";
 import { type OrderProduct } from "@/server/db/schema";
 import { type Nullable } from "@/lib/types/helper";
-import { z } from "zod";
 import { useFieldArray, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { type FormOrderEvent, schema } from "./schema";
+import { upsertOrder } from "@/app/g/[id]/(authorized)/event/view/[event_id]/action";
 
 type Props = PageProps & {
   items: Array<
@@ -19,19 +20,6 @@ type Props = PageProps & {
     }
   >;
 };
-
-const schema = z.object({
-  groupId: z.number(),
-  eventId: z.number(),
-  userId: z.string(),
-  items: z.array(
-    z.object({
-      id: z.number(),
-      amount: z.number().min(0),
-    }),
-  ),
-});
-type FormData = z.infer<typeof schema>;
 
 const FormOrderBlock = ({
   items,
@@ -51,7 +39,7 @@ const FormOrderBlock = ({
     formState: { errors, isDirty },
     control,
     watch,
-  } = useForm<FormData>({
+  } = useForm<FormOrderEvent>({
     resolver: zodResolver(schema),
     defaultValues: {
       groupId: Number(params.id),
@@ -78,8 +66,10 @@ const FormOrderBlock = ({
     name: "items", // unique name for your Field Array
   });
 
-  const onSubmit = (data: FormData) => {
-    console.log(data);
+  const onSubmit = async (data: FormOrderEvent) => {
+    const result = await upsertOrder(data);
+
+    console.log(result);
   };
 
   return (
@@ -126,23 +116,21 @@ const FormOrderBlock = ({
         ))}
       </div>
 
-      <div className="sticky inset-x-0 bottom-0 flex items-center rounded-md bg-background p-4">
-        <p>Your order</p>
+      <div className="sticky inset-x-0 bottom-0 flex items-center gap-4 rounded-md bg-background p-4 shadow-lg">
+        <h1 className={"text-2xl"}>Total:</h1>
 
-        <div className="flex flex-1 justify-end gap-4">
-          <p>
-            {Intl.NumberFormat("vi", {
-              style: "currency",
-              currency: "vnd",
-            }).format(accumulatedTotal)}
-          </p>
+        <p className={"flex-1 text-2xl tabular-nums"}>
+          {Intl.NumberFormat("vi", {
+            style: "currency",
+            currency: "vnd",
+          }).format(accumulatedTotal)}
+        </p>
 
-          {isDirty && (
-            <Button type="submit" className="btn-primary">
-              Save
-            </Button>
-          )}
-        </div>
+        {isDirty && (
+          <Button type="submit" className="btn-primary">
+            Save
+          </Button>
+        )}
       </div>
     </form>
   );
