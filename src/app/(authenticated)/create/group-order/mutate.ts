@@ -15,7 +15,7 @@ const useCreateGroupOrder = () => {
   return useMutation({
     mutationKey: ["create-group-order"],
     mutationFn: async (payload: GroupOrderCreate) =>
-      (await authKy()).post("/api/group-order", { json: payload }).json<{
+      (await authKy()).post("/api/g", { json: payload }).json<{
         data: { id: number };
       }>(),
   });

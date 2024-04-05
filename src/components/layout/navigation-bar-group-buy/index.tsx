@@ -1,24 +1,47 @@
 import { Item } from "./item";
-import { auth } from "@clerk/nextjs";
-import { type OrderGroup } from "@/server/db/schema";
+import { type OrderGroup, OrderProducts } from "@/server/db/schema";
 import { Settings } from "lucide-react";
+import { db } from "@/server/db";
+import { and, count, eq, isNull } from "drizzle-orm";
+import { Badge } from "@/components/ui/badge";
 
-type Props = Pick<OrderGroup, "id" | "ownerClerkId" | "name">;
+type Props = Pick<OrderGroup, "id" | "ownerClerkId" | "name"> & {
+  isTheOwner: boolean;
+};
 
-const GroupBuyNavigationBar = async ({ id, ownerClerkId, name }: Props) => {
-  const user = auth();
+const GroupBuyNavigationBar = async ({ id, isTheOwner }: Props) => {
   const baseHref = `/g/${id}`;
+
+  const [result] = await db
+    .select({
+      totalProducts: count(OrderProducts.id),
+    })
+    .from(OrderProducts)
+    .where(
+      and(eq(OrderProducts.orderGroupId, id), isNull(OrderProducts.deletedAt)),
+    )
+    .groupBy(OrderProducts.orderGroupId);
+  let totalProducts = 0;
+  if (result) {
+    totalProducts = result.totalProducts;
+  }
+
   return (
     <div className={"sticky inset-x-0 top-0 flex items-center gap-4 py-2"}>
-      <Item href={baseHref}>What&apos;s new</Item>
-      <Item href={`${baseHref}/menu`}>Menu</Item>
-      <Item href={`${baseHref}/history`}>History</Item>
+      <Item href={baseHref} exact={"exact"}>
+        What&apos;s new
+      </Item>
+      <Item href={`${baseHref}/menu`} className={"items-center gap-2"}>
+        <span>Menu</span>
+        <Badge>{totalProducts}</Badge>
+      </Item>
+      <Item href={`${baseHref}/event`}>Events</Item>
 
       <div className={"flex-1"} />
 
       <Item href={`${baseHref}/preference`}>Preference</Item>
 
-      {user.userId === ownerClerkId && (
+      {isTheOwner && (
         <>
           <div className={"h-4 w-[2px] bg-gray-400"} />
           <Item href={`${baseHref}/setting`}>
