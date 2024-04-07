@@ -11,7 +11,11 @@ const NavigationItems = ({
       className={cn("flex items-center space-x-4 lg:space-x-6", className)}
       {...props}
     >
-      <NavigationItem href="/g">Order Groups</NavigationItem>
+      <NavigationItem href="/" matchType={"exact"}>
+        Home
+      </NavigationItem>
+      <NavigationItem href="/order">Your Orders</NavigationItem>
+      <NavigationItem href="/product">Your Products</NavigationItem>
     </nav>
   );
 };

@@ -23,8 +23,8 @@ export default function RootLayout({
 }) {
   return (
     <RootProvider>
-      <html lang="en">
-        <body className={`bg-gray-100 font-sans ${inter.variable}`}>
+      <html lang="en" className={"dark"}>
+        <body className={`font-sans ${inter.variable}`}>
           <NavigationBar />
           {children}
           <Toaster />

@@ -25,9 +25,12 @@ const NavigationItem = ({
     <Link
       href={href}
       className={cn(
-        buttonVariants({ variant: "ghost" }),
+        buttonVariants({
+          variant: isMatchingPath(pathName, href, matchType)
+            ? "default"
+            : "ghost",
+        }),
         className,
-        isMatchingPath(pathName, href, matchType) && "text-primary",
       )}
     >
       {children}

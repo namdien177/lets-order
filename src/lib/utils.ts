@@ -1,6 +1,8 @@
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { type PaginationQueryParamsZodParse } from "@/lib/types/pagination.types";
+import { type QueryParamsWithSearch } from "@/lib/types/pagination.types";
+import { type Optional } from "@/lib/types/helper";
+import { z } from "zod";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -29,22 +31,24 @@ export function isMatchingPath(
 }
 
 export function extractPaginationParams(
-  validatedParams: PaginationQueryParamsZodParse,
+  raw: QueryParamsWithSearch,
   opts?: {
     defaultPage?: number;
     defaultPerPage?: number;
   },
 ) {
-  const defaultPage = opts?.defaultPage ?? 1;
-  const defaultPerPage = opts?.defaultPerPage ?? 10;
-  const queryPage = validatedParams.success
-    ? validatedParams.data.page ?? defaultPage
-    : defaultPage;
-  const queryPerPage = validatedParams.success
-    ? validatedParams.data.per_page ?? defaultPerPage
-    : defaultPerPage;
-  const queryKeyword = validatedParams.success
-    ? validatedParams.data.keyword?.trim() ?? undefined
-    : undefined;
-  return { queryPage, queryPerPage, queryKeyword };
+  let page = opts?.defaultPage ?? 1;
+  let limit = opts?.defaultPerPage ?? 10;
+  let keyword: Optional<string> = undefined;
+
+  try {
+    page = isNullish(raw.page) ? page : z.coerce.number().parse(raw.page);
+    limit = isNullish(raw.limit) ? limit : z.coerce.number().parse(raw.limit);
+    keyword = isNullish(raw.keyword)
+      ? keyword
+      : z.coerce.string().parse(raw.keyword);
+  } catch (err) {
+    // ignore
+  }
+  return { page, limit, keyword };
 }
