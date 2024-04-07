@@ -1,11 +1,7 @@
 import { type PaginationParams } from "@/lib/types/pagination.types";
 import { db } from "@/server/db";
-import {
-  OrderEventProductTable,
-  OrderEventTable,
-  OrderUserTable,
-} from "@/server/db/schema";
-import { and, count, desc, eq, gt, ilike, or } from "drizzle-orm";
+import { OrderCartTable, OrderEventTable } from "@/server/db/schema";
+import { and, count, desc, eq, ilike, or } from "drizzle-orm";
 
 export const queryOrders = async ({
   keyword,
@@ -15,60 +11,52 @@ export const queryOrders = async ({
 }: PaginationParams & {
   clerkId: string;
 }) => {
-  const associateEventSQ = db
+  let eventHasUserCartQuery = db
     .selectDistinct({
-      eventId: OrderEventProductTable.eventId,
-      clerkId: OrderUserTable.clerkId,
+      eventId: OrderEventTable.id,
+      clerkId: OrderCartTable.clerkId,
     })
-    .from(OrderUserTable)
-    .innerJoin(
-      OrderEventProductTable,
-      eq(OrderEventProductTable.id, OrderUserTable.orderEventProductId),
-    )
-    .where(
-      and(eq(OrderUserTable.clerkId, clerkId), gt(OrderUserTable.amount, 0)),
-    )
-    .orderBy(
-      desc(OrderEventProductTable.eventId),
-      desc(OrderUserTable.updatedAt),
-    )
-    .as("associateEventSQ");
-
-  let data$ = db
-    .select({
-      id: OrderEventTable.id,
-      name: OrderEventTable.name,
-      createdAt: OrderEventTable.createdAt,
-      eventStatus: OrderEventTable.eventStatus,
-      paymentStatus: OrderEventTable.paymentStatus,
-      endingAt: OrderEventTable.endingAt,
-    })
-    .from(OrderEventTable)
-    .innerJoin(
-      associateEventSQ,
-      eq(associateEventSQ.eventId, OrderEventTable.id),
-    )
+    .from(OrderCartTable)
+    .innerJoin(OrderEventTable, eq(OrderEventTable.id, OrderCartTable.eventId))
+    .orderBy(desc(OrderEventTable.id), desc(OrderEventTable.endingAt))
     .$dynamic();
 
   if (keyword?.trim()) {
-    data$ = data$.where(
-      or(
-        ilike(OrderEventTable.name, `%${keyword}%`),
-        ilike(OrderEventTable.id, `%${keyword}%`),
+    eventHasUserCartQuery = eventHasUserCartQuery.where(
+      and(
+        or(
+          ilike(OrderEventTable.name, `%${keyword}%`),
+          ilike(OrderEventTable.id, `%${keyword}%`),
+        ),
+        eq(OrderCartTable.clerkId, clerkId),
       ),
+    );
+  } else {
+    eventHasUserCartQuery = eventHasUserCartQuery.where(
+      eq(OrderCartTable.clerkId, clerkId),
     );
   }
 
-  const subQuery = data$.as("queryEventQuery");
+  const queryBuilder$ = eventHasUserCartQuery.as("eventHasUserCartQuery");
 
   const data = await db
-    .select()
-    .from(subQuery)
+    .select({
+      id: OrderEventTable.id,
+      name: OrderEventTable.name,
+      eventStatus: OrderEventTable.eventStatus,
+      paymentStatus: OrderEventTable.paymentStatus,
+      endingAt: OrderEventTable.endingAt,
+      createdAt: OrderEventTable.createdAt,
+    })
+    .from(OrderEventTable)
+    .innerJoin(queryBuilder$, eq(queryBuilder$.eventId, OrderEventTable.id))
     .offset(Math.max(0, page - 1) * limit)
     .limit(Math.min(limit, 100));
+
   const [{ total } = { total: 0 }] = await db
     .select({ total: count() })
-    .from(subQuery);
+    .from(OrderEventTable)
+    .innerJoin(queryBuilder$, eq(queryBuilder$.eventId, OrderEventTable.id));
 
   return {
     total,

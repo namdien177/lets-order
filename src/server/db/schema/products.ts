@@ -4,16 +4,16 @@ import { relations, sql } from "drizzle-orm";
 import { OrderEventProductTable } from "@/server/db/schema/order-event-product";
 
 export const ProductTable = createDbTable("products", {
-  id: integer("id", { mode: "number" }).primaryKey({ autoIncrement: true }),
+  id: integer("id").primaryKey({ autoIncrement: true }),
   name: text("name", { length: 256 }).notNull(),
   description: text("description", { length: 256 }),
   price: integer("price", { mode: "number" }).notNull(),
   clerkId: text("clerk_id", { length: 256 }).notNull(),
   previousVersionId: integer("previous_version_id", { mode: "number" }),
   createdAt: text("created_at")
-    .default(sql`CURRENT_TIMESTAMP`)
+    .default(sql`(CURRENT_TIMESTAMP)`)
     .notNull(),
-  updatedAt: text("updatedAt"),
+  updatedAt: text("updated_at"),
   deletedAt: text("deleted_at"),
 });
 

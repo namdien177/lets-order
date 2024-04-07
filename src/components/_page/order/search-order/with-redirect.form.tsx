@@ -3,7 +3,7 @@ import { Input } from "@/components/ui/input";
 import { CommandShortcut } from "@/components/ui/command";
 import { redirect } from "next/navigation";
 
-const SearchOrderForm = () => {
+const SearchOrderWithRedirect = () => {
   const submitSearchParams = async (data: FormData) => {
     "use server";
     const keyword = data.get("q");
@@ -39,4 +39,4 @@ const SearchOrderForm = () => {
   );
 };
 
-export default SearchOrderForm;
+export default SearchOrderWithRedirect;

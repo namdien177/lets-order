@@ -9,7 +9,7 @@ import {
 import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button";
 import { Home } from "lucide-react";
-import SearchOrderForm from "@/components/_page/order/search-order";
+import SearchOrderWithRedirect from "@/components/_page/order/search-order/with-redirect.form";
 import { type NextPageProps } from "@/lib/types/nextjs";
 import { type QueryParamsWithSearch } from "@/lib/types/pagination.types";
 import { extractPaginationParams } from "@/lib/utils";
@@ -76,7 +76,7 @@ const Page = async ({ searchParams: rawParams }: PageProps) => {
             className={"h-[1px] w-full bg-accent sm:block sm:h-4 sm:w-[2px]"}
           ></div>
 
-          <SearchOrderForm />
+          <SearchOrderWithRedirect />
         </div>
       </div>
 

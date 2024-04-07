@@ -27,9 +27,9 @@ export const OrderEventTable = createDbTable("order_events", {
     .default(ORDER_PAYMENT_STATUS.PENDING),
   endingAt: integer("ending_at", { mode: "timestamp_ms" }),
   createdAt: text("created_at")
-    .default(sql`CURRENT_TIMESTAMP`)
+    .default(sql`(CURRENT_TIMESTAMP)`)
     .notNull(),
-  updatedAt: text("updatedAt"),
+  updatedAt: text("updated_at"),
 });
 
 export const OrderEventRelations = relations(OrderEventTable, ({ many }) => ({

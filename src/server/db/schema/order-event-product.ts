@@ -1,9 +1,9 @@
 import { createDbTable } from "@/server/db/schema/_core";
-import { integer, unique } from "drizzle-orm/sqlite-core";
-import { relations } from "drizzle-orm";
+import { integer, text, unique } from "drizzle-orm/sqlite-core";
+import { relations, sql } from "drizzle-orm";
 import { ProductTable } from "@/server/db/schema/products";
 import { OrderEventTable } from "@/server/db/schema/order-event";
-import { OrderUserTable } from "@/server/db/schema/order-user";
+import { OrderCartTable } from "@/server/db/schema/order-cart";
 
 export const OrderEventProductTable = createDbTable(
   "order_event_products",
@@ -11,7 +11,9 @@ export const OrderEventProductTable = createDbTable(
     id: integer("id", { mode: "number" }).primaryKey({ autoIncrement: true }),
     productId: integer("product_id", { mode: "number" }).notNull(),
     eventId: integer("event_id", { mode: "number" }).notNull(),
-    createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
+    createdAt: text("created_at")
+      .default(sql`(CURRENT_TIMESTAMP)`)
+      .notNull(),
   },
   (table) => ({
     menu_unique: unique("menu_unique").on(table.productId, table.eventId),
@@ -29,7 +31,7 @@ export const OrderEventProductRelations = relations(
       fields: [OrderEventProductTable.eventId],
       references: [OrderEventTable.id],
     }),
-    orderedBy: many(OrderUserTable),
+    carts: many(OrderCartTable),
   }),
 );
 
