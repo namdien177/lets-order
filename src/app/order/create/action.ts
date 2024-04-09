@@ -57,12 +57,13 @@ export const createOrderEvent = async (payload: OrderEventPayload) => {
   }
 
   // ensure the list of items is valid
+  const selectedIds = payload.items.map((item) => item.id);
   const itemInformation = await db
     .select()
     .from(ProductTable)
     .where(
       and(
-        inArray(ProductTable.id, payload.items),
+        inArray(ProductTable.id, selectedIds),
         isNull(ProductTable.deletedAt),
         eq(ProductTable.clerkId, userId),
       ),
@@ -74,13 +75,14 @@ export const createOrderEvent = async (payload: OrderEventPayload) => {
   ) {
     // get invalid item ids
     const invalidItems = payload.items.filter(
-      (itemId) => !itemInformation.some((item) => item.id === itemId),
+      (payloadItem) =>
+        !itemInformation.some((item) => item.id === payloadItem.id),
     );
     return {
       type: BaseResponseType.invalid,
       error: "Some items are invalid",
       meta: { invalidItems },
-    } as InvalidResponse<{ invalidItems: number[] }>;
+    } as InvalidResponse<{ invalidItems: { id: number }[] }>;
   }
 
   const orderEvent = await db.transaction(async (tx) => {
@@ -100,7 +102,7 @@ export const createOrderEvent = async (payload: OrderEventPayload) => {
     const insertedProducts = await tx
       .insert(OrderEventProductTable)
       .values(
-        payload.items.map((itemId) => ({
+        selectedIds.map((itemId) => ({
           eventId: createdEvent.id,
           productId: itemId,
         })),

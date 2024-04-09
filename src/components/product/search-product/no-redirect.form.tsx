@@ -16,14 +16,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { findProducts } from "@/components/product/search-product/no-redirect.action";
 import { useState } from "react";
-import useDebounce from "@/lib/hooks/useDebounce";
 import { Badge } from "@/components/ui/badge";
 import { type Product } from "@/server/db/schema";
+import DebouncedInput from "@/components/form/debounce-input";
 
 type Props = {
   clerkId: string;
@@ -42,10 +41,9 @@ const SearchOwnedProductNoRedirectForm = ({
   onSelected,
   onSelectAll,
 }: Props) => {
-  const [rawKeyword, setKeyword] = useState<string>("");
-  const keyword = useDebounce(rawKeyword);
+  const [keyword, setKeyword] = useState<string>("");
 
-  const { data, isPending } = useQuery({
+  const { data, isFetching } = useQuery({
     queryKey: ["findProducts", clerkId, excludes, keyword],
     queryFn: () => findProducts({ clerkId, excludes, keyword }),
     enabled: keyword.length >= 3 && keyword.length <= 60,
@@ -56,7 +54,7 @@ const SearchOwnedProductNoRedirectForm = ({
     <Card className="w-full">
       <CardHeader className="flex flex-col items-center gap-4">
         <div className="flex w-full flex-col gap-2">
-          <CardTitle>Available products</CardTitle>
+          <CardTitle className={"text-lg"}>Available products</CardTitle>
           <CardDescription>
             Belows are the list of products that available for this event.
           </CardDescription>
@@ -68,15 +66,16 @@ const SearchOwnedProductNoRedirectForm = ({
               size={16}
               className={"absolute left-3 top-1/2 -translate-y-1/2 transform"}
             />
-            <Input
+            <DebouncedInput
               className={"w-full pl-10 pr-14"}
               maxLength={60}
               placeholder={"product name, product description, etc..."}
-              onChange={(e) => setKeyword(e.target.value)}
+              onDebouncedChange={(value) => setKeyword(value)}
             />
           </label>
 
           <Button
+            type={"button"}
             onClick={() => {
               if (products.length === 0) {
                 return;
@@ -84,7 +83,7 @@ const SearchOwnedProductNoRedirectForm = ({
               onSelectAll?.(products);
               setKeyword("");
             }}
-            disabled={products.length === 0 || isPending}
+            disabled={products.length === 0 || isFetching}
           >
             Select All {products.length > 0 && <Badge>{products.length}</Badge>}
           </Button>
@@ -95,8 +94,8 @@ const SearchOwnedProductNoRedirectForm = ({
           <TableHeader>
             <TableRow>
               <TableHead>Name</TableHead>
-              <TableHead className="w-40 text-center">Amount</TableHead>
-              <TableHead className={"w-28 text-center"}>Action</TableHead>
+              <TableHead className="w-40">Price</TableHead>
+              <TableHead className={"w-32 text-center"}>Action</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -115,18 +114,24 @@ const SearchOwnedProductNoRedirectForm = ({
                   })}
                 </TableCell>
                 <TableCell>
-                  <Button onClick={() => onSelected?.(product)}>Add</Button>
+                  <Button
+                    type={"button"}
+                    className={"w-full"}
+                    onClick={() => onSelected?.(product)}
+                  >
+                    Add
+                  </Button>
                 </TableCell>
               </TableRow>
             ))}
-            {products.length === 0 && !isPending && (
+            {products.length === 0 && !isFetching && (
               <TableRow>
                 <TableCell colSpan={3} className={"text-center text-accent"}>
                   No product found
                 </TableCell>
               </TableRow>
             )}
-            {isPending && (
+            {isFetching && (
               <TableRow>
                 <TableCell colSpan={3} className={"text-center"}>
                   Loading...
