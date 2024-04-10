@@ -3,7 +3,7 @@ import { integer, text, unique } from "drizzle-orm/sqlite-core";
 import { relations, sql } from "drizzle-orm";
 import { ProductTable } from "@/server/db/schema/products";
 import { OrderEventTable } from "@/server/db/schema/order-event";
-import { OrderCartTable } from "@/server/db/schema/order-cart";
+import { OrderItemTable } from "@/server/db/schema/order-item";
 
 export const OrderEventProductTable = createDbTable(
   "order_event_products",
@@ -31,7 +31,7 @@ export const OrderEventProductRelations = relations(
       fields: [OrderEventProductTable.eventId],
       references: [OrderEventTable.id],
     }),
-    carts: many(OrderCartTable),
+    inCarts: many(OrderItemTable),
   }),
 );
 

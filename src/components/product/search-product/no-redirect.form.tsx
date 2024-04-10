@@ -45,8 +45,9 @@ const SearchOwnedProductNoRedirectForm = ({
 
   const { data, isFetching } = useQuery({
     queryKey: ["findProducts", clerkId, excludes, keyword],
-    queryFn: () => findProducts({ clerkId, excludes, keyword }),
-    enabled: keyword.length >= 3 && keyword.length <= 60,
+    queryFn: () => findProducts({ clerkId, keyword, excludes }),
+    enabled:
+      (keyword.length >= 3 && keyword.length <= 60) || keyword.length === 0,
   });
   const products = data?.data ?? [];
 

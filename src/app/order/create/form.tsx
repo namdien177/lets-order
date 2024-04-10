@@ -10,15 +10,13 @@ import {
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import SearchOwnedProductNoRedirectForm from "@/components/product/search-product/no-redirect.form";
-import { Controller, useForm } from "react-hook-form";
+import { useFieldArray, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   OrderEventCreationSchema,
   type OrderEventPayload,
 } from "@/app/order/create/schema";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
-import { type Product } from "@/server/db/schema";
 import {
   Table,
   TableBody,
@@ -27,25 +25,66 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { z } from "zod";
 
-const CreateForm = ({ clerkId }: Pick<OrderEventPayload, "clerkId">) => {
-  const [displaySelectItems, setDisplayItems] = useState<
-    Pick<Product, "id" | "name" | "description" | "price">[]
-  >([]);
+const ExtendedSchema = OrderEventCreationSchema.merge(
+  z.object({
+    items: z.array(
+      z.object({
+        id: z.number().int().positive(),
+        name: z.string(),
+        description: z.string().nullish(),
+        price: z.number().int().positive(),
+      }),
+    ),
+  }),
+);
+
+type ExtendedPayload = typeof ExtendedSchema._output;
+
+type Props = Pick<OrderEventPayload, "clerkId"> & {
+  onSubmit?: (payload: OrderEventPayload) => void;
+};
+
+const CreateForm = ({ clerkId, onSubmit }: Props) => {
   const {
     register,
     handleSubmit,
     formState: { errors },
     control,
-  } = useForm<OrderEventPayload>({
-    resolver: zodResolver(OrderEventCreationSchema),
+  } = useForm<ExtendedPayload>({
+    resolver: zodResolver(ExtendedSchema),
     defaultValues: {
       clerkId,
     },
   });
 
+  console.log(errors);
+
+  const { append, remove, fields } = useFieldArray({
+    control,
+    name: "items",
+    keyName: "_key",
+  });
+
+  const submitAction = (data: ExtendedPayload) => {
+    console.log(data);
+    const payload: OrderEventPayload = {
+      clerkId: data.clerkId,
+      name: data.name,
+      items: data.items.map((item) => ({
+        id: item.id,
+      })),
+    };
+
+    onSubmit?.(payload);
+  };
+
   return (
-    <form className={"container mx-auto flex flex-col gap-8 p-8"}>
+    <form
+      onSubmit={handleSubmit(submitAction)}
+      className={"container mx-auto flex flex-col gap-8 p-8"}
+    >
       <Card className={"w-full"}>
         <CardHeader>
           <CardTitle>Event Information</CardTitle>
@@ -88,8 +127,8 @@ const CreateForm = ({ clerkId }: Pick<OrderEventPayload, "clerkId">) => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {displaySelectItems.map((product) => (
-                  <TableRow key={product.id}>
+                {fields.map((product, index) => (
+                  <TableRow key={product._key}>
                     <TableCell>{product.name}</TableCell>
                     <TableCell>{product.description}</TableCell>
                     <TableCell>
@@ -99,31 +138,14 @@ const CreateForm = ({ clerkId }: Pick<OrderEventPayload, "clerkId">) => {
                       })}
                     </TableCell>
                     <TableCell>
-                      <Controller
-                        control={control}
-                        name={"items"}
-                        render={({ field }) => (
-                          <Button
-                            type={"button"}
-                            variant={"destructive"}
-                            className={"w-full"}
-                            onClick={() => {
-                              setDisplayItems((current) =>
-                                current.filter(
-                                  (item) => item.id !== product.id,
-                                ),
-                              );
-                              field.onChange(
-                                (field.value ?? []).filter(
-                                  (item) => item.id !== product.id,
-                                ),
-                              );
-                            }}
-                          >
-                            Remove
-                          </Button>
-                        )}
-                      />
+                      <Button
+                        type={"button"}
+                        variant={"destructive"}
+                        className={"w-full"}
+                        onClick={() => remove(index)}
+                      >
+                        Remove
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -133,20 +155,10 @@ const CreateForm = ({ clerkId }: Pick<OrderEventPayload, "clerkId">) => {
 
           <hr />
 
-          <Controller
-            control={control}
-            name={"items"}
-            render={({ field }) => (
-              <SearchOwnedProductNoRedirectForm
-                clerkId={clerkId}
-                excludes={field.value?.map((product) => product.id)}
-                onSelected={(product) => {
-                  field.onChange([...(field.value ?? []), { id: product.id }]);
-                  field.onBlur();
-                  setDisplayItems((current) => [...current, product]);
-                }}
-              />
-            )}
+          <SearchOwnedProductNoRedirectForm
+            clerkId={clerkId}
+            excludes={fields.map((product) => product.id)}
+            onSelected={(product) => append(product)}
           />
         </CardContent>
       </Card>

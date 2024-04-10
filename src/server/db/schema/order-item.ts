@@ -2,10 +2,12 @@ import { createDbTable } from "@/server/db/schema/_core";
 import { integer, primaryKey, text } from "drizzle-orm/sqlite-core";
 import { relations, sql } from "drizzle-orm";
 import { OrderEventProductTable } from "@/server/db/schema/order-event-product";
+import { OrderCartTable } from "@/server/db/schema/order-cart";
 
 export const OrderItemTable = createDbTable(
   "order_items",
   {
+    cartId: integer("cart_id", { mode: "number" }).notNull(),
     clerkId: text("clerk_id", { length: 256 }).notNull(),
     orderEventProductId: integer("order_event_product_id", {
       mode: "number",
@@ -27,6 +29,10 @@ export const OrderItemRelations = relations(OrderItemTable, ({ one }) => ({
   product: one(OrderEventProductTable, {
     fields: [OrderItemTable.orderEventProductId],
     references: [OrderEventProductTable.id],
+  }),
+  cart: one(OrderCartTable, {
+    fields: [OrderItemTable.cartId],
+    references: [OrderCartTable.id],
   }),
 }));
 

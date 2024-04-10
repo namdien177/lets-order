@@ -21,6 +21,12 @@ export const queryOrders = async ({
     .orderBy(desc(OrderEventTable.id), desc(OrderEventTable.endingAt))
     .$dynamic();
 
+  let eventYouOwnedQuery = db
+    .selectDistinct()
+    .from(OrderEventTable)
+    .orderBy(desc(OrderEventTable.id), desc(OrderEventTable.endingAt))
+    .$dynamic();
+
   if (keyword?.trim()) {
     eventHasUserCartQuery = eventHasUserCartQuery.where(
       and(
@@ -31,9 +37,21 @@ export const queryOrders = async ({
         eq(OrderCartTable.clerkId, clerkId),
       ),
     );
+    eventYouOwnedQuery = eventYouOwnedQuery.where(
+      and(
+        eq(OrderEventTable.clerkId, clerkId),
+        or(
+          ilike(OrderEventTable.name, `%${keyword}%`),
+          ilike(OrderEventTable.id, `%${keyword}%`),
+        ),
+      ),
+    );
   } else {
     eventHasUserCartQuery = eventHasUserCartQuery.where(
       eq(OrderCartTable.clerkId, clerkId),
+    );
+    eventYouOwnedQuery = eventYouOwnedQuery.where(
+      eq(OrderEventTable.clerkId, clerkId),
     );
   }
 

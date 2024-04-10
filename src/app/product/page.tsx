@@ -3,7 +3,6 @@ import { type NextPageProps } from "@/lib/types/nextjs";
 import { cn, extractPaginationParams } from "@/lib/utils";
 import { auth } from "@clerk/nextjs";
 import { redirect } from "next/navigation";
-import { findProducts } from "@/components/product/search-product/no-redirect.action";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -23,6 +22,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { searchOwnProduct } from "@/server/queries/product.query";
 
 type PageProps = NextPageProps<Record<string, string>, QueryParamsWithSearch>;
 
@@ -34,7 +34,7 @@ const Page = async ({ searchParams: rawParams }: PageProps) => {
     redirect("/sign-in");
   }
 
-  const { data, total } = await findProducts({
+  const { data, total } = await searchOwnProduct({
     keyword: paginationParams.keyword,
     limit: paginationParams.limit,
     page: paginationParams.page,
@@ -85,20 +85,16 @@ const Page = async ({ searchParams: rawParams }: PageProps) => {
 
       <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap">
         {data.map((product) => (
-          <Card key={product.id} className="w-full sm:w-1/2 sm:max-w-96">
+          <Card key={product.id} className="w-full sm:w-1/2 sm:max-w-80">
             <CardHeader className="pb-3">
               <CardTitle>
                 #{product.id} - {product.name}
               </CardTitle>
               <CardDescription className={"flex flex-col gap-4"}>
                 <span>{product.description ?? "N/A"}</span>
-                <div className="flex flex-col">
-                  <h2>Created At:</h2>
-                  <span>{product.createdAt}</span>
-                </div>
               </CardDescription>
             </CardHeader>
-            <CardFooter className={"gap-8"}>
+            <CardFooter className={"gap-4"}>
               <Button className={""} variant={"destructive"}>
                 <Trash size={16} />
               </Button>
