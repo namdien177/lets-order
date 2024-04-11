@@ -1,10 +1,6 @@
 "use client";
 
-import {
-  ORDER_EVENT_STATUS,
-  type OrderEvent,
-  type OrderEventStatus,
-} from "@/server/db/schema";
+import { type OrderEvent } from "@/server/db/schema";
 import {
   Select,
   SelectContent,
@@ -16,6 +12,10 @@ import { Loader2 } from "lucide-react";
 import { isNullish } from "@/lib/utils";
 import useOrderEventStatusMutation from "@/components/event-detail/mutations/useOrderEventStatus.mutation";
 import { toast } from "sonner";
+import {
+  ORDER_EVENT_STATUS,
+  type OrderEventStatus,
+} from "@/server/db/constant";
 
 const EventStatusForm = ({
   status: initialStatus,

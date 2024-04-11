@@ -29,7 +29,6 @@ export const queryOrders = async ({
     })
     .from(OrderEventTable)
     .where(eq(OrderEventTable.clerkId, clerkId))
-    .orderBy(desc(OrderEventTable.id), desc(OrderEventTable.endingAt))
     .$dynamic();
 
   if (keyword?.trim()) {
@@ -54,24 +53,6 @@ export const queryOrders = async ({
     "subQueriesBuiler",
   );
 
-  console.log(
-    db
-      .select({
-        id: OrderEventTable.id,
-        name: OrderEventTable.name,
-        eventStatus: OrderEventTable.eventStatus,
-        paymentStatus: OrderEventTable.paymentStatus,
-        endingAt: OrderEventTable.endingAt,
-        createdAt: OrderEventTable.createdAt,
-      })
-      .from(OrderEventTable)
-      .innerJoin(
-        subQueriesBuilder$,
-        eq(subQueriesBuilder$.eventId, OrderEventTable.id),
-      )
-      .toSQL(),
-  );
-
   const data = await db
     .select({
       id: OrderEventTable.id,
@@ -86,6 +67,7 @@ export const queryOrders = async ({
       subQueriesBuilder$,
       eq(subQueriesBuilder$.eventId, OrderEventTable.id),
     )
+    .orderBy(desc(OrderEventTable.id), desc(OrderEventTable.endingAt))
     .offset(Math.max(0, page - 1) * limit)
     .limit(Math.min(limit, 100));
 

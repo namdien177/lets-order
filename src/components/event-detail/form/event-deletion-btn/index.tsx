@@ -1,6 +1,5 @@
 "use client";
 
-import { ORDER_EVENT_STATUS, type OrderEventStatus } from "@/server/db/schema";
 import { Trash } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import useOrderEventDeletionMutation from "@/components/event-detail/mutations/useOrderEventDeletion.mutation";
@@ -18,6 +17,10 @@ import {
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import {
+  ORDER_EVENT_STATUS,
+  type OrderEventStatus,
+} from "@/server/db/constant";
 
 type Props = {
   eventId: number;
