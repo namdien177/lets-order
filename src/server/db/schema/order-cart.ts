@@ -9,9 +9,9 @@ export const OrderCartTable = createDbTable(
   "order_carts",
   {
     id: integer("id", { mode: "number" }).primaryKey({ autoIncrement: true }),
-    clerkId: text("clerk_id", { length: 256 }).notNull(),
+    clerkId: text("clerk_id", { length: 100 }).notNull(),
     eventId: integer("event_id", { mode: "number" }).notNull(),
-    note: text("note", { length: 256 }),
+    note: text("note", { length: 100 }),
     paymentStatus: text("payment_status", {
       length: 20,
       enum: [ORDER_PAYMENT_STATUS.PENDING, ORDER_PAYMENT_STATUS.PAID],

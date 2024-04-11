@@ -13,17 +13,20 @@ export const queryOrders = async ({
 }) => {
   let eventHasUserCartQuery = db
     .selectDistinct({
-      eventId: OrderEventTable.id,
+      eventId: OrderCartTable.eventId,
       clerkId: OrderCartTable.clerkId,
     })
     .from(OrderCartTable)
-    .innerJoin(OrderEventTable, eq(OrderEventTable.id, OrderCartTable.eventId))
-    .orderBy(desc(OrderEventTable.id), desc(OrderEventTable.endingAt))
+    .where(eq(OrderCartTable.clerkId, clerkId))
     .$dynamic();
 
   let eventYouOwnedQuery = db
-    .selectDistinct()
+    .selectDistinct({
+      eventId: OrderEventTable.id,
+      clerkId: OrderEventTable.clerkId,
+    })
     .from(OrderEventTable)
+    .where(eq(OrderEventTable.clerkId, clerkId))
     .orderBy(desc(OrderEventTable.id), desc(OrderEventTable.endingAt))
     .$dynamic();
 
