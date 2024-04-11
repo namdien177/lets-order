@@ -9,11 +9,10 @@ export const OrderCartTable = createDbTable(
   "order_carts",
   {
     id: integer("id", { mode: "number" }).primaryKey({ autoIncrement: true }),
-    clerkId: text("clerk_id", { length: 100 }).notNull(),
+    clerkId: text("clerk_id").notNull(),
     eventId: integer("event_id", { mode: "number" }).notNull(),
-    note: text("note", { length: 100 }),
+    note: text("note"),
     paymentStatus: text("payment_status", {
-      length: 20,
       enum: [ORDER_PAYMENT_STATUS.PENDING, ORDER_PAYMENT_STATUS.PAID],
     })
       .notNull()
@@ -31,11 +30,11 @@ export const OrderCartTable = createDbTable(
 export const OrderCartRelations = relations(
   OrderCartTable,
   ({ one, many }) => ({
-    fromEvent: one(OrderEventTable, {
+    event: one(OrderEventTable, {
       fields: [OrderCartTable.eventId],
       references: [OrderEventTable.id],
     }),
-    products: many(OrderItemTable),
+    itemsInCart: many(OrderItemTable),
   }),
 );
 

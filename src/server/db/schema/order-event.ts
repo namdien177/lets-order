@@ -8,11 +8,10 @@ export const OrderEventTable = createDbTable(
   "order_events",
   {
     id: integer("id", { mode: "number" }).primaryKey({ autoIncrement: true }),
-    code: text("code", { length: 12 }).notNull(),
-    clerkId: text("clerk_id", { length: 256 }).notNull(),
-    name: text("name", { length: 256 }).notNull(),
+    code: text("code").notNull(),
+    clerkId: text("clerk_id").notNull(),
+    name: text("name").notNull(),
     eventStatus: text("eventStatus", {
-      length: 20,
       enum: [
         ORDER_EVENT_STATUS.CANCELLED,
         ORDER_EVENT_STATUS.DRAFT,
@@ -23,7 +22,6 @@ export const OrderEventTable = createDbTable(
       .notNull()
       .default(ORDER_EVENT_STATUS.DRAFT),
     paymentStatus: text("paymentStatus", {
-      length: 20,
       enum: [ORDER_PAYMENT_STATUS.PENDING, ORDER_PAYMENT_STATUS.PAID],
     })
       .notNull()

@@ -5,10 +5,10 @@ import { OrderEventProductTable } from "@/server/db/schema/order-event-product";
 
 export const ProductTable = createDbTable("products", {
   id: integer("id").primaryKey({ autoIncrement: true }),
-  name: text("name", { length: 256 }).notNull(),
-  description: text("description", { length: 256 }),
+  name: text("name").notNull(),
+  description: text("description"),
   price: integer("price", { mode: "number" }).notNull(),
-  clerkId: text("clerk_id", { length: 256 }).notNull(),
+  clerkId: text("clerk_id").notNull(),
   previousVersionId: integer("previous_version_id", { mode: "number" }),
   createdAt: text("created_at")
     .default(sql`(CURRENT_TIMESTAMP)`)

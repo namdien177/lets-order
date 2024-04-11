@@ -8,7 +8,6 @@ export const OrderItemTable = createDbTable(
   "order_items",
   {
     cartId: integer("cart_id", { mode: "number" }).notNull(),
-    clerkId: text("clerk_id", { length: 256 }).notNull(),
     orderEventProductId: integer("order_event_product_id", {
       mode: "number",
     }).notNull(),
@@ -20,7 +19,7 @@ export const OrderItemTable = createDbTable(
   },
   (table) => ({
     pk: primaryKey({
-      columns: [table.clerkId, table.orderEventProductId],
+      columns: [table.cartId, table.orderEventProductId],
     }),
   }),
 );
