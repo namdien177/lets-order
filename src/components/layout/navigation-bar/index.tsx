@@ -14,9 +14,9 @@ const NavigationBar = () => {
     <div className="sticky top-0 flex h-16 items-center border-b bg-background px-4">
       <NavigationLogo />
 
-      <NavigationItems className="mx-6" />
+      <NavigationItems className="mx-6 flex-1 overflow-x-auto" />
 
-      <div className="ml-auto flex items-center gap-4">
+      <div className="flex items-center gap-4">
         <SignedIn>
           <UserButton />
         </SignedIn>

@@ -130,7 +130,7 @@ const EventMenu = ({ eventId, cart }: Props) => {
 
       <hr />
 
-      <div className="sticky inset-x-0 bottom-0 flex w-full flex-col gap-4 rounded border bg-background p-4">
+      <div className="sticky inset-x-0 bottom-4 flex w-full flex-col gap-4 rounded border bg-background p-4">
         <h1 className={"text-xl font-bold capitalize"}>Your cart</h1>
         <hr />
         {fields.length === 0 && (

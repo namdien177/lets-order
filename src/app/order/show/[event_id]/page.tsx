@@ -68,7 +68,7 @@ const Page = async ({ params: { event_id } }: PageProps) => {
   }
 
   return (
-    <div className={"container mx-auto p-8"}>
+    <div className={"container mx-auto p-4 md:p-8"}>
       <Breadcrumb className={"w-full"}>
         <BreadcrumbList>
           <BreadcrumbItem>
