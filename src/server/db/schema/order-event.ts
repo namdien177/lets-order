@@ -3,6 +3,7 @@ import { index, integer, text } from "drizzle-orm/sqlite-core";
 import { relations, sql } from "drizzle-orm";
 import { OrderEventProductTable } from "@/server/db/schema/order-event-product";
 import { ORDER_EVENT_STATUS, ORDER_PAYMENT_STATUS } from "@/server/db/constant";
+import { OrderCartTable } from "@/server/db/schema/order-cart";
 
 export const OrderEventTable = createDbTable(
   "order_events",
@@ -39,6 +40,7 @@ export const OrderEventTable = createDbTable(
 
 export const OrderEventRelations = relations(OrderEventTable, ({ many }) => ({
   menu: many(OrderEventProductTable),
+  carts: many(OrderCartTable),
 }));
 
 export type OrderEvent = typeof OrderEventTable.$inferSelect;

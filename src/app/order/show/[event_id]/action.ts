@@ -1,399 +1,277 @@
 "use server";
+
 import { type CreateCartPayload } from "@/app/order/show/[event_id]/schema";
 import { auth } from "@clerk/nextjs";
 import {
   type AuthErrorResponse,
   BaseResponseType,
   type InvalidResponse,
+  type NotFoundErrorResponse,
+  type ServerErrorResponse,
   type SuccessResponseData,
 } from "@/lib/types/response.type";
 import { db } from "@/server/db";
-import { OrderCartTable, OrderItemTable } from "@/server/db/schema";
-import { ORDER_EVENT_STATUS } from "@/server/db/constant";
-import { type Nullish } from "@/lib/types/helper";
+import {
+  type OrderCart,
+  OrderCartTable,
+  type OrderItem,
+  OrderItemTable,
+} from "@/server/db/schema";
 import { and, eq, inArray } from "drizzle-orm";
+import { revalidatePath } from "next/cache";
+import { isNullish } from "@/lib/utils";
 
-async function queryProductInfo(orderItem: Nullish<CreateCartPayload["item"]>) {
-  if (!orderItem) {
-    return [];
-  }
-
-  return db.query.OrderEventProductTable.findMany({
-    where: (table, { inArray }) =>
-      inArray(table.id, [orderItem.eventProductId]),
-  });
-}
-
-export const upsertOrder = async (payload: CreateCartPayload) => {
-  const { userId } = auth();
-
-  if (!userId) {
-    return {
-      type: BaseResponseType.unAuthenticated,
-      error: "User not authenticated",
-    } as AuthErrorResponse;
-  }
-
-  const eventInfo = await db.query.OrderEventTable.findFirst({
-    where: (table, { eq, and, isNull }) =>
-      and(
-        eq(table.id, payload.eventId),
-        isNull(table.endingAt),
-        eq(table.eventStatus, ORDER_EVENT_STATUS.ACTIVE),
-      ),
-  });
-
-  if (!eventInfo) {
-    return {
-      type: BaseResponseType.notFound,
-      error: "Event not found",
-    };
-  }
-
-  const findExistingCart = await db.query.OrderCartTable.findFirst({
-    where: (table, { and, eq }) =>
-      and(eq(table.clerkId, userId), eq(table.eventId, payload.eventId)),
-    with: {
-      itemsInCart: true,
-    },
-  });
-
-  const newOrderingItems = payload.item;
-  const ensureProductExists = await queryProductInfo(newOrderingItems);
-
-  if (!findExistingCart) {
-    // TODO: fixed product length = 1
-    if (!newOrderingItems || ensureProductExists.length !== 1) {
-      return {
-        type: BaseResponseType.notFound,
-        error: "Product not found",
-      };
-    }
-
-    // create cart and order item
-    const cartData = await db.transaction(async (transaction) => {
-      const [inserted] = await transaction
-        .insert(OrderCartTable)
-        .values({
-          eventId: payload.eventId,
-          clerkId: userId,
-        })
-        .returning();
-
-      if (!inserted) {
-        transaction.rollback();
-        return null;
-      }
-
-      // insert items
-      const items = await transaction
-        .insert(OrderItemTable)
-        .values({
-          cartId: inserted.id,
-          orderEventProductId: newOrderingItems.eventProductId,
-          amount: 1, // TODO: temporary fixed 1
-        })
-        .returning();
-
-      if (!items || items.length !== ensureProductExists.length) {
-        transaction.rollback();
-        return null;
-      }
-
-      return inserted;
-    });
-
-    if (!cartData) {
-      return {
-        type: BaseResponseType.serverError,
-        error: "Failed to create cart",
-      };
-    }
-
-    return {
-      type: BaseResponseType.success,
-      data: {
-        id: cartData.id,
-      },
-    };
-  }
-
-  if (!newOrderingItems) {
-    // remove all ordered item and cart
-    const removedStatus = await db.transaction(async (transaction) => {
-      await transaction
-        .delete(OrderItemTable)
-        .where(eq(OrderItemTable.cartId, findExistingCart.id));
-      await transaction
-        .delete(OrderCartTable)
-        .where(eq(OrderCartTable.id, findExistingCart.id));
-      return true;
-    });
-
-    if (!removedStatus) {
-      return {
-        type: BaseResponseType.serverError,
-        error: "Failed to remove cart",
-      };
-    }
-    return {
-      type: BaseResponseType.success,
-      data: {
-        id: findExistingCart.id,
-      },
-      message: "You have removed your order in this event",
-    } as SuccessResponseData<{ id: number }>;
-  }
-
-  // TODO: fixed product length = 1
-  if (ensureProductExists.length !== 1) {
-    return {
-      type: BaseResponseType.notFound,
-      error: "Product not found",
-    };
-  }
-
-  // find existing items
-  const orderedItems = await db.query.OrderItemTable.findMany({
-    where: (table, { eq }) => eq(table.cartId, findExistingCart.id),
-  });
-
-  if (!orderedItems || orderedItems.length === 0) {
-    // insert order items
-    const insertedStatus = await db.transaction(async (transaction) => {
-      const items = await transaction
-        .insert(OrderItemTable)
-        .values({
-          cartId: findExistingCart.id,
-          orderEventProductId: newOrderingItems.eventProductId,
-          amount: 1, // TODO: temporary fixed 1
-        })
-        .returning();
-
-      if (!items || items.length !== 1) {
-        transaction.rollback();
-        return false;
-      }
-
-      return true;
-    });
-
-    if (!insertedStatus) {
-      return {
-        type: BaseResponseType.serverError,
-        error: "Failed to insert items",
-      };
-    }
-
-    return {
-      type: BaseResponseType.success,
-      data: {
-        id: findExistingCart.id,
-      },
-    };
-  }
-
-  // upsert order items
-  const itemsInCartToBeDeleted = orderedItems.filter(
-    (item) => item.orderEventProductId !== newOrderingItems.eventProductId,
-  );
-  const itemsInCartToBeInserted = [newOrderingItems].filter(
-    (newItem) =>
-      !orderedItems.find(
-        (item) => item.orderEventProductId === newItem.eventProductId,
-      ),
-  );
-
-  const updateTransaction = await db.transaction(async (transaction) => {
-    const deletedItems = await transaction.delete(OrderItemTable).where(
-      and(
-        eq(OrderItemTable.cartId, findExistingCart.id),
-        inArray(
-          OrderItemTable.orderEventProductId,
-          itemsInCartToBeDeleted.map((item) => item.orderEventProductId),
-        ),
-      ),
-    );
-
-    if (deletedItems.rows.length !== itemsInCartToBeDeleted.length) {
-      transaction.rollback();
-      return false;
-    }
-
-    const insertedItems = await transaction
-      .insert(OrderItemTable)
-      .values(
-        itemsInCartToBeInserted.map((item) => ({
-          cartId: findExistingCart.id,
-          orderEventProductId: item.eventProductId,
-          amount: 1, // TODO: temporary fixed 1
-        })),
-      )
+const createCart = async (clerkId: string, orderPayload: CreateCartPayload) => {
+  const cart = await db.transaction(async (ctx) => {
+    const [inserted] = await ctx
+      .insert(OrderCartTable)
+      .values({
+        eventId: orderPayload.eventId,
+        clerkId,
+      })
       .returning();
-    if (insertedItems.length !== itemsInCartToBeInserted.length) {
-      transaction.rollback();
-      return false;
+
+    if (!inserted) {
+      ctx.rollback();
+      return null;
     }
-
-    return true;
+    return inserted;
   });
 
-  if (!updateTransaction) {
-    return {
+  if (!cart) {
+    throw {
       type: BaseResponseType.serverError,
-      error: "Failed to update items",
-    };
+      error: "Failed to create cart",
+    } as ServerErrorResponse;
   }
 
-  return {
-    type: BaseResponseType.success,
-    data: {
-      id: findExistingCart.id,
-    },
-    message: "Order updated",
-  } as SuccessResponseData<{ id: number }>;
-};
-
-const upsertItemsInCart = async (payload: CreateCartPayload) => {
-  const { userId } = auth();
-
-  if (!userId) {
-    return {
-      type: BaseResponseType.unAuthenticated,
-      error: "User not authenticated",
-    } as AuthErrorResponse;
-  }
-  const cartId = payload.cartId;
-  const newOrderItems = payload.item ? [payload.item] : [];
-  if (!cartId) {
-    return {
-      type: BaseResponseType.invalid,
-      error: "Invalid cart id",
-      meta: payload,
-    } as InvalidResponse<CreateCartPayload>;
-  }
-
-  const cartInfo = await db.query.OrderCartTable.findFirst({
-    where: (table, { eq, and }) =>
+  // ensure items are valid
+  const items = await db.query.OrderEventProductTable.findMany({
+    where: (table, { and, eq, inArray }) =>
       and(
-        eq(table.eventId, payload.eventId),
-        eq(table.clerkId, userId),
-        eq(table.id, cartId),
-      ),
-    with: {
-      itemsInCart: true,
-      event: true,
-    },
-  });
-
-  if (!cartInfo) {
-    return {
-      type: BaseResponseType.notFound,
-      error: "Cart not found",
-    };
-  }
-
-  if (cartInfo.event.eventStatus !== ORDER_EVENT_STATUS.ACTIVE) {
-    return {
-      type: BaseResponseType.forbidden,
-      error: "Event is not active",
-    };
-  }
-
-  const { itemToDelete, itemToUpdate } = cartInfo.itemsInCart.reduce(
-    (acc, item) => {
-      const newItem = newOrderItems.find(
-        (newItem) => newItem.eventProductId === item.orderEventProductId,
-      );
-      if (!newItem) {
-        acc.itemToDelete.push(item);
-        // } else {
-        // TODO: since we are fixed 1, no compare for this
-        // acc.itemToUpdate.push(newItem);
-      }
-      return acc;
-    },
-    {
-      itemToDelete: [] as typeof cartInfo.itemsInCart,
-      itemToUpdate: [] as typeof newOrderItems,
-    },
-  );
-  //
-  const itemToInsert = newOrderItems.filter(
-    (newItem) =>
-      !cartInfo.itemsInCart.find(
-        (oldItem) => oldItem.orderEventProductId === newItem.eventProductId,
-      ),
-  );
-
-  const transactionStatus = await db.transaction(async (tx) => {
-    const deletedItems = await tx.delete(OrderItemTable).where(
-      and(
-        eq(OrderItemTable.cartId, cartId),
+        eq(table.eventId, orderPayload.eventId),
         inArray(
-          OrderItemTable.orderEventProductId,
-          itemToDelete.map((item) => item.orderEventProductId),
+          table.productId,
+          orderPayload.items.map((item) => item.id),
         ),
       ),
-    );
+  });
 
-    if (deletedItems.rows.length !== itemToDelete.length) {
-      tx.rollback();
-      return false;
-    }
+  if (items.length !== orderPayload.items.length) {
+    throw {
+      type: BaseResponseType.invalid,
+      error: "Some items are not valid, try to refresh the page and try again",
+    } as InvalidResponse;
+  }
 
-    const insertedItems = await tx
+  // insert items
+  const insertItems = await db.transaction(async (ctx) => {
+    const result = await ctx
       .insert(OrderItemTable)
       .values(
-        itemToInsert.map((item) => ({
-          cartId,
-          orderEventProductId: item.eventProductId,
+        items.map((item) => ({
+          cartId: cart.id,
+          orderEventProductId: item.id,
           amount: 1,
         })),
       )
       .returning();
 
-    if (insertedItems.length !== itemToInsert.length) {
-      tx.rollback();
+    if (result.length !== items.length) {
+      ctx.rollback();
+      return null;
+    }
+    return result;
+  });
+
+  if (!insertItems) {
+    throw {
+      type: BaseResponseType.serverError,
+      error: "Failed to insert items",
+    } as ServerErrorResponse;
+  }
+
+  return cart;
+};
+
+const deleteCart = async (cartId: number) => {
+  return db.transaction(async (ctx) => {
+    await ctx.delete(OrderItemTable).where(eq(OrderItemTable.cartId, cartId));
+
+    const result = await ctx
+      .delete(OrderCartTable)
+      .where(eq(OrderCartTable.id, cartId));
+
+    if (result.rowsAffected !== 1) {
+      ctx.rollback();
       return false;
     }
 
-    const updatedItems = await tx
-      .update(OrderItemTable)
-      .set({
-        // TODO: fixed 1
-        amount: 1,
-      })
-      .where(
+    return true;
+  });
+};
+
+const upsertCart = async (
+  cartDataId: number,
+  cartItems: OrderItem[],
+  orderPayload: CreateCartPayload,
+) => {
+  const toDeleteItems: Pick<OrderItem, "orderEventProductId">[] = [];
+  const toUpdateItems: Pick<OrderItem, "orderEventProductId" | "amount">[] = [];
+  const toInsertItems: Pick<OrderItem, "orderEventProductId" | "amount">[] = [
+    ...orderPayload.items.map((item) => ({
+      orderEventProductId: item.eventProductId,
+      amount: 1,
+    })),
+  ];
+
+  cartItems.forEach((existItem) => {
+    const foundIndex = orderPayload.items.findIndex(
+      (inPayload) => inPayload.eventProductId === existItem.orderEventProductId,
+    );
+    const fromPayload = orderPayload.items[foundIndex];
+
+    if (foundIndex === -1) {
+      toDeleteItems.push(existItem);
+    } else {
+      // since we are mocking the value of amount to 1, therefore
+      // we don't need to update the amount -> no action here;
+
+      // updateItems.push(existItem);
+      // remove from insertItems
+      toInsertItems.splice(foundIndex, 1);
+    }
+  });
+
+  // transaction upsert
+  return db.transaction(async (ctx) => {
+    if (toDeleteItems.length > 0) {
+      const deleted = await ctx.delete(OrderItemTable).where(
         and(
-          eq(OrderItemTable.cartId, cartId),
+          eq(OrderItemTable.cartId, cartDataId),
           inArray(
             OrderItemTable.orderEventProductId,
-            itemToUpdate.map((item) => item.eventProductId),
+            toDeleteItems.map((item) => item.orderEventProductId),
           ),
         ),
-      )
-      .returning();
+      );
 
-    if (updatedItems.length !== itemToUpdate.length) {
-      tx.rollback();
-      return false;
+      if (deleted.rowsAffected !== toDeleteItems.length) {
+        ctx.rollback();
+        return false;
+      }
+    }
+
+    if (toInsertItems.length > 0) {
+      const insertedResult = await ctx.insert(OrderItemTable).values(
+        toInsertItems.map((item) => ({
+          cartId: cartDataId,
+          orderEventProductId: item.orderEventProductId,
+          // TODO: update amount in next feature release
+          amount: item.amount,
+        })),
+      );
+
+      if (insertedResult.rowsAffected !== toInsertItems.length) {
+        ctx.rollback();
+        return false;
+      }
     }
     return true;
   });
+};
 
-  if (!transactionStatus) {
+export const PlacingOrderAction = async (orderPayload: CreateCartPayload) => {
+  const { userId } = auth();
+
+  if (!userId) {
+    return {
+      type: BaseResponseType.unAuthenticated,
+      error: "User is not authenticated",
+    } as AuthErrorResponse;
+  }
+
+  const existingCartId = orderPayload.cartId;
+
+  if (isNullish(existingCartId)) {
+    if (orderPayload.items.length === 0) {
+      return {
+        type: BaseResponseType.invalid,
+        error: "Cart must have at least one item",
+      } as InvalidResponse;
+    }
+
+    try {
+      const data = await createCart(userId, orderPayload);
+      revalidatePath(`/order/show/${orderPayload.eventId}`);
+      return {
+        type: BaseResponseType.success,
+        data,
+        message: "Cart created successfully",
+      } as SuccessResponseData<OrderCart>;
+    } catch (e) {
+      return e as ServerErrorResponse;
+    }
+  }
+
+  const cartData = await db.query.OrderCartTable.findFirst({
+    where: (table, { and, eq }) =>
+      and(eq(table.id, existingCartId), eq(table.clerkId, userId)),
+    with: {
+      itemsInCart: {
+        with: {
+          registeredProduct: {
+            with: {
+              product: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  if (!cartData) {
+    return {
+      type: BaseResponseType.notFound,
+      error: "Cart not found",
+    } as NotFoundErrorResponse;
+  }
+
+  if (orderPayload.items.length === 0) {
+    // remove the placing order
+    const removed = await deleteCart(cartData.id);
+
+    if (!removed) {
+      return {
+        type: BaseResponseType.serverError,
+        error: "Failed to remove cart",
+      } as ServerErrorResponse;
+    }
+
+    revalidatePath(`/order/show/${orderPayload.eventId}`);
+    return {
+      type: BaseResponseType.success,
+      data: null,
+      message: "Cart removed successfully",
+    } as SuccessResponseData<null>;
+  }
+
+  const isUpsertSuccess = await upsertCart(
+    cartData.id,
+    cartData.itemsInCart,
+    orderPayload,
+  );
+
+  if (!isUpsertSuccess) {
     return {
       type: BaseResponseType.serverError,
       error: "Failed to update cart",
-    };
+    } as ServerErrorResponse;
   }
-
+  revalidatePath(`/order/show/${orderPayload.eventId}`);
   return {
     type: BaseResponseType.success,
-    data: {
-      id: cartId,
-    },
-    message: "Cart updated",
-  } as SuccessResponseData<{ id: number }>;
+    data: null,
+    message: "Cart updated successfully",
+  } as SuccessResponseData<null>;
 };

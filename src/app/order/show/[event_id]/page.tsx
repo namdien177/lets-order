@@ -13,20 +13,58 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import EventMenu from "@/app/order/show/[event_id]/event-menu";
+import { auth } from "@clerk/nextjs";
+import { type CartItemPayload } from "@/app/order/show/[event_id]/schema";
 
 type PageProps = NextPageProps<{
   event_id: string;
 }>;
 
 const Page = async ({ params: { event_id } }: PageProps) => {
+  const { userId } = auth();
   const eventId = parseInt(event_id);
+
+  if (!userId) {
+    redirect("/sign-in");
+  }
 
   const orderEvent = await db.query.OrderEventTable.findFirst({
     where: (table, { eq }) => eq(table.id, eventId),
+    with: {
+      carts: {
+        where: (table, { eq }) => eq(table.clerkId, userId),
+        with: {
+          itemsInCart: {
+            with: {
+              registeredProduct: {
+                with: {
+                  product: true,
+                },
+              },
+            },
+          },
+        },
+      },
+    },
   });
 
   if (!orderEvent) {
     redirect("/404");
+  }
+
+  const userCart = orderEvent.carts.at(0);
+  let cart: { id: number; items: Array<CartItemPayload> } | undefined;
+  if (userCart) {
+    cart = {
+      id: userCart.id,
+      items: userCart.itemsInCart.map((item) => ({
+        id: item.registeredProduct.productId,
+        eventProductId: item.orderEventProductId,
+        name: item.registeredProduct.product.name,
+        description: item.registeredProduct.product.description,
+        price: item.registeredProduct.product.price,
+      })),
+    };
   }
 
   return (
@@ -72,7 +110,7 @@ const Page = async ({ params: { event_id } }: PageProps) => {
 
         <hr />
 
-        <EventMenu event={orderEvent} />
+        <EventMenu clerkId={userId} eventId={orderEvent.id} cart={cart} />
       </div>
     </div>
   );

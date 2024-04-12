@@ -25,7 +25,7 @@ export const OrderItemTable = createDbTable(
 );
 
 export const OrderItemRelations = relations(OrderItemTable, ({ one }) => ({
-  product: one(OrderEventProductTable, {
+  registeredProduct: one(OrderEventProductTable, {
     fields: [OrderItemTable.orderEventProductId],
     references: [OrderEventProductTable.id],
   }),

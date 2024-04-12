@@ -29,6 +29,12 @@ export type ServerErrorResponse = {
   meta?: Record<string, unknown>;
 };
 
+export type NotFoundErrorResponse = {
+  type: typeof BaseResponseType.notFound;
+  error: string;
+  meta?: Record<string, unknown>;
+};
+
 export type AuthErrorResponse = {
   type:
     | typeof BaseResponseType.unAuthenticated
@@ -36,7 +42,7 @@ export type AuthErrorResponse = {
   error: string;
 };
 
-export type InvalidResponse<T> = {
+export type InvalidResponse<T = undefined> = {
   type: typeof BaseResponseType.invalid;
   error: string;
   meta: T;
