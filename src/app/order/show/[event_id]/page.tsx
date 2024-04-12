@@ -12,6 +12,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
+import EventMenu from "@/app/order/show/[event_id]/event-menu";
 
 type PageProps = NextPageProps<{
   event_id: string;
@@ -70,6 +71,8 @@ const Page = async ({ params: { event_id } }: PageProps) => {
         </div>
 
         <hr />
+
+        <EventMenu event={orderEvent} />
       </div>
     </div>
   );

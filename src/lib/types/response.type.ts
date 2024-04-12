@@ -19,6 +19,7 @@ export type SuccessResponseData<
 > = {
   type: (typeof BaseResponseType)["success"];
   data: T;
+  message: string;
   meta: meta;
 };
 

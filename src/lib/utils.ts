@@ -1,7 +1,7 @@
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { type QueryParamsWithSearch } from "@/lib/types/pagination.types";
-import { type Optional } from "@/lib/types/helper";
+import { type Nullish, type Optional } from "@/lib/types/helper";
 import { z } from "zod";
 
 export function cn(...inputs: ClassValue[]) {
@@ -63,4 +63,14 @@ export const generateRandomString = (length: number) => {
     result += characters.charAt(Math.floor(Math.random() * charactersLength));
   }
   return result;
+};
+
+export const formatAsMoney = (value: Nullish<number>, onNullish = "") => {
+  if (isNullish(value)) {
+    return onNullish;
+  }
+
+  return Intl.NumberFormat("vi-VN", {
+    currency: "VND",
+  }).format(value);
 };

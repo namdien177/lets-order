@@ -46,6 +46,7 @@ export const createProductAction = async (payload: CreateProductPayload) => {
         price: inserted.price,
         createdAt: inserted.createdAt,
       },
+      message: "Product created successfully",
     } as SuccessResponseData<
       Pick<Product, "id" | "name" | "description" | "price" | "createdAt">
     >;
