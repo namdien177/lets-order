@@ -83,7 +83,7 @@ const CreateForm = ({ clerkId, onSubmit }: Props) => {
   return (
     <form
       onSubmit={handleSubmit(submitAction)}
-      className={"container mx-auto flex flex-col gap-8 p-8"}
+      className={"flex flex-col gap-8"}
     >
       <Card className={"w-full"}>
         <CardHeader>

@@ -1,8 +1,7 @@
 import { type NextPageProps } from "@/lib/types/nextjs";
 import { db } from "@/server/db";
 import { redirect } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { Home, Share2 } from "lucide-react";
+import { Home, Settings, Share2 } from "lucide-react";
 import EventBadgeStatus from "@/app/order/show/[event_id]/event-badge-status";
 import {
   Breadcrumb,
@@ -12,15 +11,21 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
-import EventMenu from "@/app/order/show/[event_id]/event-menu";
+import EventMenu from "@/app/order/show/[event_id]/(active)/event-menu";
 import { auth } from "@clerk/nextjs";
 import { type CartItemPayload } from "@/app/order/show/[event_id]/schema";
+import EventShareBtn from "@/app/order/show/[event_id]/event-share.btn";
+import { env } from "@/env";
+import Link from "next/link";
+import { buttonVariants } from "@/components/ui/button";
 
 type PageProps = NextPageProps<{
   event_id: string;
 }>;
 
 const Page = async ({ params: { event_id } }: PageProps) => {
+  const clienthost = env.CLIENT_HOST;
+
   const { userId } = auth();
   const eventId = parseInt(event_id);
 
@@ -100,12 +105,29 @@ const Page = async ({ params: { event_id } }: PageProps) => {
         </div>
 
         <div className="flex items-center justify-center gap-4 md:justify-start">
-          <EventBadgeStatus data={orderEvent} className={"h-9 px-4"} />
+          <div className={"flex flex-1 items-center gap-4"}>
+            <EventBadgeStatus data={orderEvent} className={"h-9 px-4"} />
 
-          <Button size={"sm"} className={"gap-2"} variant={"outline"}>
-            <Share2 size={16} />
-            <span>Copy URL</span>
-          </Button>
+            <EventShareBtn
+              size={"sm"}
+              className={"gap-2"}
+              variant={"outline"}
+              copyContent={`${clienthost}/order/show/${orderEvent.id}`}
+            >
+              <Share2 size={16} />
+              <span>Share</span>
+            </EventShareBtn>
+          </div>
+
+          <Link
+            href={`/order/edit/${orderEvent.id}`}
+            className={buttonVariants({
+              size: "icon",
+              variant: "ghost",
+            })}
+          >
+            <Settings size={16} />
+          </Link>
         </div>
 
         <hr />

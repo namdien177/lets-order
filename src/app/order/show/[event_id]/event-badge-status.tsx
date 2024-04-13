@@ -19,7 +19,7 @@ const EventBadgeStatus = ({
       <Badge
         {...props}
         className={cn(
-          "bg-green-500 hover:bg-green-600",
+          "bg-green-600 hover:bg-green-700",
           "select-none text-white",
           className,
         )}

@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 
 const NavigationBar = () => {
   return (
-    <div className="sticky top-0 flex h-16 items-center border-b bg-background px-4">
+    <div className="sticky top-0 z-50 flex h-16 items-center border-b bg-background px-4">
       <NavigationLogo />
 
       <NavigationItems className="mx-6 flex-1 overflow-x-auto" />

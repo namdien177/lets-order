@@ -2,20 +2,22 @@
 
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { getAllProductsInEvent } from "@/app/order/show/[event_id]/event-menu.action";
-import { Search } from "lucide-react";
+import { Search, Trash } from "lucide-react";
 import DebouncedInput from "@/components/form/debounce-input";
 import { Button } from "@/components/ui/button";
 import { useFieldArray, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { formatAsMoney } from "@/lib/utils";
+import { formatAsMoney, isNullish } from "@/lib/utils";
 import {
   type CartItemPayload,
   createCartItemSchema,
   type CreateCartPayload,
 } from "@/app/order/show/[event_id]/schema";
-import EventMenuBtn from "@/app/order/show/[event_id]/event-menu.btn";
-import { PlacingOrderAction } from "@/app/order/show/[event_id]/action";
+import EventMenuBtn from "@/app/order/show/[event_id]/(active)/event-menu.btn";
+import {
+  getAllProductsInEvent,
+  PlacingOrderAction,
+} from "@/app/order/show/[event_id]/(active)/event-menu.action";
 import { BaseResponseType } from "@/lib/types/response.type";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
@@ -102,8 +104,9 @@ const EventMenu = ({ eventId, cart }: Props) => {
         />
       </div>
 
-      <div className={"flex flex-col gap-4"}>
-        <h1 className={"text-xl font-bold uppercase"}>Menu</h1>
+      <h1 className={"text-xl font-bold uppercase"}>Menu</h1>
+
+      <div className={"flex max-h-96 flex-col gap-4 overflow-y-auto"}>
         {data?.map((product) => (
           <div
             key={product.id}
@@ -140,17 +143,30 @@ const EventMenu = ({ eventId, cart }: Props) => {
             Your cart is empty
           </small>
         )}
-        {fields.map((item) => (
-          <div
-            key={item._row_key}
-            className="flex flex-1 flex-col border-l-2 pl-2"
-          >
-            <p className={"text-lg"}>{item.name}</p>
-            <small className={"text-muted-foreground"}>
-              {item.description}
-            </small>
-          </div>
-        ))}
+        <div className="flex max-h-32 flex-col gap-4 overflow-y-auto">
+          {fields.map((item, index) => (
+            <div
+              key={item._row_key}
+              className="flex w-full items-center border-l-2 pl-2"
+            >
+              <div className="flex flex-1 flex-col">
+                <p className={"text-lg"}>{item.name}</p>
+                <small className={"text-muted-foreground"}>
+                  {item.description}
+                </small>
+              </div>
+
+              <Button
+                type={"button"}
+                size={"icon"}
+                variant={"ghost"}
+                onClick={() => remove(index)}
+              >
+                <Trash size={16} />
+              </Button>
+            </div>
+          ))}
+        </div>
 
         <hr />
 
@@ -160,7 +176,11 @@ const EventMenu = ({ eventId, cart }: Props) => {
         </div>
         <div className="flex gap-4">
           <Button type={"submit"} disabled={isPending} className={"flex-1"}>
-            {isPending ? "loading..." : "Place order"}
+            {isPending
+              ? "loading..."
+              : isNullish(cart?.id)
+                ? "Place order"
+                : "Update order"}
           </Button>
         </div>
       </div>

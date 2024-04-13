@@ -14,10 +14,13 @@ import { db } from "@/server/db";
 import {
   type OrderCart,
   OrderCartTable,
+  type OrderEvent,
+  OrderEventProductTable,
   type OrderItem,
   OrderItemTable,
+  ProductTable,
 } from "@/server/db/schema";
-import { and, eq, inArray } from "drizzle-orm";
+import { and, asc, eq, inArray, like } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { isNullish } from "@/lib/utils";
 
@@ -274,4 +277,33 @@ export const PlacingOrderAction = async (orderPayload: CreateCartPayload) => {
     data: null,
     message: "Cart updated successfully",
   } as SuccessResponseData<null>;
+};
+
+export const getAllProductsInEvent = async (
+  event: Pick<OrderEvent, "id">,
+  keyword = "",
+) => {
+  return db
+    .select({
+      id: ProductTable.id,
+      eventProductId: OrderEventProductTable.id,
+      name: ProductTable.name,
+      description: ProductTable.description,
+      price: ProductTable.price,
+      createdAt: ProductTable.createdAt,
+    })
+    .from(OrderEventProductTable)
+    .innerJoin(
+      ProductTable,
+      eq(OrderEventProductTable.productId, ProductTable.id),
+    )
+    .where(
+      and(
+        eq(OrderEventProductTable.eventId, event.id),
+        keyword.trim().length >= 3
+          ? like(ProductTable.name, `%${keyword.toLowerCase().trim()}%`)
+          : undefined,
+      ),
+    )
+    .orderBy(asc(OrderEventProductTable.createdAt));
 };
