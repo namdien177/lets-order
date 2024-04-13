@@ -120,13 +120,15 @@ const Page = async ({ params: { event_id } }: PageProps) => {
           </div>
 
           <Link
-            href={`/order/edit/${orderEvent.id}`}
+            href={`/order/manage/${orderEvent.id}`}
             className={buttonVariants({
-              size: "icon",
-              variant: "ghost",
+              variant: "outline",
+              className: "gap-2",
+              size: "sm",
             })}
           >
             <Settings size={16} />
+            <span>Manage</span>
           </Link>
         </div>
 

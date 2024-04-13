@@ -13,7 +13,8 @@ import {
 import { Home, Info } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import EditOrderEventInfoForm from "@/app/order/edit/[event_id]/info.form";
+import EditOrderEventInfoForm from "./(event-infomation)/info.form";
+import EventStatusForm from "@/app/order/manage/[event_id]/(event-status)/status.form";
 
 type PageProps = NextPageProps<{
   event_id: string;
@@ -53,7 +54,7 @@ const Page = async ({ params: { event_id } }: PageProps) => {
           <BreadcrumbSeparator />
           <BreadcrumbItem>
             <BreadcrumbPage className={"flex items-center gap-2"}>
-              <Badge>Edit</Badge> <span>{eventInfo.name}</span>
+              <Badge>Manage</Badge> <span>{eventInfo.name}</span>
             </BreadcrumbPage>
           </BreadcrumbItem>
         </BreadcrumbList>
@@ -72,6 +73,14 @@ const Page = async ({ params: { event_id } }: PageProps) => {
           orderEvent={{
             id: eventInfo.id,
             name: eventInfo.name,
+            status: eventInfo.eventStatus,
+          }}
+        />
+
+        <EventStatusForm
+          orderEvent={{
+            id: eventInfo.id,
+            status: eventInfo.eventStatus,
           }}
         />
       </div>
