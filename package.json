@@ -32,7 +32,7 @@
     "clsx": "^2.1.0",
     "cmdk": "^1.0.0",
     "date-fns": "^3.3.1",
-    "drizzle-orm": "^0.30.7",
+    "drizzle-orm": "0.30.8",
     "jotai": "^2.7.1",
     "ky": "^1.2.0",
     "lucide-react": "^0.312.0",

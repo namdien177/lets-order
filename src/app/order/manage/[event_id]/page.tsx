@@ -15,6 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import EditOrderEventInfoForm from "./(event-infomation)/info.form";
 import EventStatusForm from "@/app/order/manage/[event_id]/(event-status)/status.form";
+import OrderList from "@/app/order/manage/[event_id]/(order-list)/order-list";
 
 type PageProps = NextPageProps<{
   event_id: string;
@@ -83,6 +84,8 @@ const Page = async ({ params: { event_id } }: PageProps) => {
             status: eventInfo.eventStatus,
           }}
         />
+
+        <OrderList eventId={eventId} clerkId={userId} />
       </div>
     </div>
   );
