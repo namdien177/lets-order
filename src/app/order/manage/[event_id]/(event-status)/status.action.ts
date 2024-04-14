@@ -8,16 +8,23 @@ import {
   type AuthErrorResponse,
   BaseResponseType,
   type InvalidResponse,
-  type NotFoundErrorResponse,
   type ServerErrorResponse,
   type SuccessResponseData,
 } from "@/lib/types/response.type";
 import { type ZodIssue } from "zod";
 import { db } from "@/server/db";
-import { OrderEventTable } from "@/server/db/schema";
+import {
+  OrderCartTable,
+  OrderEventTable,
+  OrderItemTable,
+} from "@/server/db/schema";
 import { auth } from "@clerk/nextjs";
-import { and, eq } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+import {
+  ORDER_EVENT_STATUS,
+  type OrderEventStatus,
+} from "@/server/db/constant";
 
 export const updateEventToStatus = async (event: EventStatusPayload) => {
   const validatePayload = eventStatusSchema.safeParse(event);
@@ -40,21 +47,67 @@ export const updateEventToStatus = async (event: EventStatusPayload) => {
 
   const { id, status: newStatus } = validatePayload.data;
 
+  const needClearCarts = (
+    [
+      ORDER_EVENT_STATUS.CANCELLED,
+      ORDER_EVENT_STATUS.DRAFT,
+    ] as OrderEventStatus[]
+  ).includes(newStatus);
+
   try {
-    const updatedEvent = await db
-      .update(OrderEventTable)
-      .set({
-        eventStatus: newStatus,
-      })
-      .where(
-        and(eq(OrderEventTable.id, id), eq(OrderEventTable.clerkId, userId)),
+    const updateSuccess = await db.transaction(async (tx) => {
+      const updatedEvent = await tx
+        .update(OrderEventTable)
+        .set({
+          eventStatus: newStatus,
+        })
+        .where(
+          and(eq(OrderEventTable.id, id), eq(OrderEventTable.clerkId, userId)),
+        );
+
+      if (updatedEvent.rowsAffected === 0) {
+        tx.rollback();
+        return false;
+      }
+
+      if (!needClearCarts) {
+        return true;
+      }
+
+      // clear carts
+      const clearedCartIds = await tx
+        .delete(OrderCartTable)
+        .where(eq(OrderCartTable.eventId, id))
+        .returning({
+          id: OrderCartTable.id,
+        });
+
+      if (clearedCartIds.length === 0) {
+        // no cart to clear
+        // and no cart = no item
+        return true;
+      }
+
+      // clear items
+      const result = await tx.delete(OrderItemTable).where(
+        inArray(
+          OrderItemTable.cartId,
+          clearedCartIds.map((cart) => cart.id),
+        ),
       );
 
-    if (updatedEvent.rowsAffected === 0) {
+      if (result.rowsAffected === 0) {
+        tx.rollback();
+        return false;
+      }
+      return true;
+    });
+
+    if (!updateSuccess) {
       return {
-        type: BaseResponseType.notFound,
-        error: "Event not found",
-      } as NotFoundErrorResponse;
+        type: BaseResponseType.forbidden,
+        error: "Event cannot be updated. Please try again later.",
+      };
     }
 
     revalidatePath(`/order/manage/${id}`);

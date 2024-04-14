@@ -42,7 +42,7 @@ const Page = async () => {
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
-      <CreateForm clerkId={userId} onSubmit={createOrderEvent} />;
+      <CreateForm clerkId={userId} onSubmit={createOrderEvent} />
     </div>
   );
 };

@@ -16,6 +16,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import EditOrderEventInfoForm from "./(event-infomation)/info.form";
 import EventStatusForm from "@/app/order/manage/[event_id]/(event-status)/status.form";
 import OrderList from "@/app/order/manage/[event_id]/(order-list)/order-list";
+import { ORDER_EVENT_STATUS } from "@/server/db/constant";
 
 type PageProps = NextPageProps<{
   event_id: string;
@@ -61,7 +62,7 @@ const Page = async ({ params: { event_id } }: PageProps) => {
         </BreadcrumbList>
       </Breadcrumb>
 
-      <div className={"mx-auto flex w-full flex-col gap-8 md:max-w-[500px]"}>
+      <div className={"mx-auto flex w-full flex-col gap-8 md:max-w-[800px]"}>
         <Alert>
           <Info size={16} />
           <AlertTitle>Heads up!</AlertTitle>
@@ -85,7 +86,15 @@ const Page = async ({ params: { event_id } }: PageProps) => {
           }}
         />
 
-        <OrderList eventId={eventId} clerkId={userId} />
+        {(eventInfo.eventStatus === ORDER_EVENT_STATUS.ACTIVE ||
+          eventInfo.eventStatus === ORDER_EVENT_STATUS.COMPLETED) && (
+          <OrderList
+            eventId={eventId}
+            eventStatus={eventInfo.eventStatus}
+            paymentStatus={eventInfo.paymentStatus}
+            clerkId={userId}
+          />
+        )}
       </div>
     </div>
   );

@@ -1,7 +1,13 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, ArrowRight, ChevronsLeft } from "lucide-react";
+import {
+  AlertTriangle,
+  ArrowLeft,
+  ArrowRight,
+  ChevronsLeft,
+  Info,
+} from "lucide-react";
 import {
   ORDER_EVENT_STATUS,
   type OrderEventStatus,
@@ -33,7 +39,7 @@ const calculateStatusAction = (currentStatus: OrderEventStatus) => {
     previousStatus = ORDER_EVENT_STATUS.DRAFT;
     nextStatus = ORDER_EVENT_STATUS.COMPLETED;
   } else if (currentStatus === ORDER_EVENT_STATUS.COMPLETED) {
-    previousStatus = ORDER_EVENT_STATUS.ACTIVE;
+    // previousStatus = ORDER_EVENT_STATUS.ACTIVE;
   } else if (currentStatus === ORDER_EVENT_STATUS.CANCELLED) {
     nextStatus = ORDER_EVENT_STATUS.DRAFT;
   }
@@ -53,6 +59,20 @@ type Props = {
 const EventStatusForm = ({ orderEvent }: Props) => {
   const { fullBackStatus, previousStatus, currentStatus, nextStatus } =
     calculateStatusAction(orderEvent.status);
+
+  const warningClearOrder =
+    (
+      [
+        ORDER_EVENT_STATUS.CANCELLED,
+        ORDER_EVENT_STATUS.DRAFT,
+      ] as Optional<OrderEventStatus>[]
+    ).includes(fullBackStatus) ||
+    (
+      [
+        ORDER_EVENT_STATUS.CANCELLED,
+        ORDER_EVENT_STATUS.DRAFT,
+      ] as Optional<OrderEventStatus>[]
+    ).includes(previousStatus);
 
   const { mutateAsync, isPending } = useMutation({
     mutationFn: updateEventToStatus,
@@ -118,7 +138,11 @@ const EventStatusForm = ({ orderEvent }: Props) => {
         )}
 
         <div className="flex flex-col items-center">
-          <small className={"text-[10px] uppercase leading-tight text-accent"}>
+          <small
+            className={
+              "text-[10px] uppercase leading-tight text-muted-foreground"
+            }
+          >
             current
           </small>
           <span className={"font-bold capitalize leading-tight"}>
@@ -142,6 +166,33 @@ const EventStatusForm = ({ orderEvent }: Props) => {
           </>
         )}
       </div>
+
+      {orderEvent.status === ORDER_EVENT_STATUS.ACTIVE && (
+        <div
+          className={
+            "flex select-none items-center gap-2 text-muted-foreground"
+          }
+        >
+          <Info size={16} />
+
+          <span>
+            Once being marked as <b className={"underline"}>Completed</b>, you
+            cannot change the event status anymore.
+          </span>
+        </div>
+      )}
+
+      {warningClearOrder && (
+        <div className={"flex select-none items-center gap-2 text-destructive"}>
+          <AlertTriangle size={16} />
+
+          <span>
+            Once being marked as <b className={"underline"}>Draft</b> or{" "}
+            <b className={"underline"}>Cancelled</b>, all existing order will be
+            cleared.
+          </span>
+        </div>
+      )}
     </div>
   );
 };

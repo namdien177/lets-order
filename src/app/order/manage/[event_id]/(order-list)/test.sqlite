@@ -1,2 +1,0 @@
-select 'lets-order_products'.'id' from (select 'lets-order_order_items'.'order_event_product_id', 'lets-order_order_carts'.'event_id', sum('lets-order_order_items'.'amount') from 'lets-order_order_carts' left join 'lets-or
-der_order_items' on 'lets-order_order_carts'.'id' = 'lets-order_order_items'.'cart_id' where 'lets-order_order_carts'.'event_id' = ? group by 'lets-order_order_items'.'order_event_product_id', 'lets-order_order_carts'.'event_id') left join 'lets-order_products' on 'lets-order_products'.'id' = ?
