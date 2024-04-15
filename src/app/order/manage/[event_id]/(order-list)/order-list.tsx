@@ -9,13 +9,13 @@ import {
 import { and, eq, gt } from "drizzle-orm";
 import { formatAsMoney } from "@/lib/utils";
 import { X } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import {
   ORDER_EVENT_STATUS,
   ORDER_PAYMENT_STATUS,
   type OrderEventStatus,
   type OrderPaymentStatus,
 } from "@/server/db/constant";
+import MarkPaidBtn from "@/app/order/manage/[event_id]/(order-list)/mark-paid.btn";
 
 type Props = {
   viewAs?: "by-product" | "by-user";
@@ -182,7 +182,9 @@ const OrderList = async ({ eventId, eventStatus, paymentStatus }: Props) => {
             Please complete the payment to mark as paid.
           </span>
         )}
-        <Button disabled={!ableToCompletePayment}>Mark as Paid</Button>
+        <MarkPaidBtn eventId={eventId} disabled={!ableToCompletePayment}>
+          Mark as Paid
+        </MarkPaidBtn>
       </div>
     </div>
   );

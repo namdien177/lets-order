@@ -14,7 +14,7 @@ export const BaseResponseType = {
 export type BaseResponseType = ObjectType<typeof BaseResponseType>;
 
 export type SuccessResponseData<
-  T,
+  T = undefined,
   meta extends Record<string, unknown> | undefined = undefined,
 > = {
   type: (typeof BaseResponseType)["success"];

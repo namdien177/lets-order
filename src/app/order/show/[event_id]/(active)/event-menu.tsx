@@ -78,7 +78,7 @@ const EventMenu = ({ eventId, cart }: Props) => {
     const result = await mutateAsync(data);
     if (result.type === BaseResponseType.success) {
       toast.success(result.message);
-      router.push(`/order`);
+      router.refresh();
       return;
     }
 
