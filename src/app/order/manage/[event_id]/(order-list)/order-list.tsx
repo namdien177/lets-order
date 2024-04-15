@@ -1,12 +1,3 @@
-import { db } from "@/server/db";
-import {
-  OrderCartTable,
-  OrderEventProductTable,
-  OrderItemTable,
-  type Product,
-  ProductTable,
-} from "@/server/db/schema";
-import { and, eq, gt } from "drizzle-orm";
 import { formatAsMoney } from "@/lib/utils";
 import { X } from "lucide-react";
 import {
@@ -16,6 +7,8 @@ import {
   type OrderPaymentStatus,
 } from "@/server/db/constant";
 import MarkPaidBtn from "@/app/order/manage/[event_id]/(order-list)/mark-paid.btn";
+import { queryItemsFromCarts } from "@/app/order/manage/[event_id]/query";
+import { displayAsOrderedItems } from "@/app/order/manage/[event_id]/mapper";
 
 type Props = {
   viewAs?: "by-product" | "by-user";
@@ -25,80 +18,17 @@ type Props = {
   clerkId: string;
 };
 
-type PreParseOutput = Pick<Product, "id" | "name" | "description" | "price"> & {
-  carts: {
-    clerkId: string;
-    amount: number;
-  }[];
-  totalAmount: number;
-};
-
 const OrderList = async ({ eventId, eventStatus, paymentStatus }: Props) => {
   const ableToCompletePayment =
     eventStatus === ORDER_EVENT_STATUS.COMPLETED &&
     paymentStatus === ORDER_PAYMENT_STATUS.PENDING;
 
-  const itemWithAmount = await db
-    .select({
-      "product.id": OrderEventProductTable.productId,
-      "product.name": ProductTable.name,
-      "product.description": ProductTable.description,
-      "product.price": ProductTable.price,
-      clerkId: OrderCartTable.clerkId,
-      eventId: OrderEventProductTable.eventId,
-      cartId: OrderCartTable.id,
-      amount: OrderItemTable.amount,
-    })
-    .from(OrderEventProductTable)
-    .innerJoin(
-      OrderCartTable,
-      eq(OrderCartTable.eventId, OrderEventProductTable.eventId),
-    )
-    .innerJoin(
-      OrderItemTable,
-      eq(OrderItemTable.orderEventProductId, OrderEventProductTable.id),
-    )
-    .innerJoin(
-      ProductTable,
-      eq(ProductTable.id, OrderEventProductTable.productId),
-    )
-    .where(
-      and(
-        eq(OrderEventProductTable.eventId, eventId),
-        gt(OrderItemTable.amount, 0),
-      ),
-    );
-
-  const displayData = new Map<string, PreParseOutput>();
-  let totalOrderedAmount = 0;
-  let totalOrderedPrice = 0;
-
-  itemWithAmount.forEach((cartItem) => {
-    const itemIndex = `key-${cartItem["product.id"]}`;
-    const recordedProduct = displayData.get(itemIndex);
-
-    if (!recordedProduct) {
-      displayData.set(itemIndex, {
-        id: cartItem["product.id"],
-        name: cartItem["product.name"],
-        description: cartItem["product.description"],
-        price: cartItem["product.price"],
-        carts: [{ clerkId: cartItem.clerkId, amount: cartItem.amount }],
-        totalAmount: cartItem.amount,
-      });
-    } else {
-      recordedProduct.carts.push({
-        clerkId: cartItem.clerkId,
-        amount: cartItem.amount,
-      });
-      recordedProduct.totalAmount =
-        recordedProduct.totalAmount + cartItem.amount;
-    }
-    totalOrderedAmount += cartItem.amount;
-    totalOrderedPrice += cartItem.amount * cartItem["product.price"];
-  });
-
-  const listItems = Array.from(displayData.values());
+  const itemWithAmount = await queryItemsFromCarts(eventId);
+  const {
+    data: listItems,
+    totalAmount,
+    totalPrice,
+  } = displayAsOrderedItems(itemWithAmount);
 
   return (
     <div className={"flex flex-col gap-4 rounded border p-4"}>
@@ -163,11 +93,9 @@ const OrderList = async ({ eventId, eventStatus, paymentStatus }: Props) => {
         </div>
 
         <div className="flex flex-col items-end">
+          <div className="flex h-8 items-center text-xl">{totalAmount}</div>
           <div className="flex h-8 items-center text-xl">
-            {totalOrderedAmount}
-          </div>
-          <div className="flex h-8 items-center text-xl">
-            {formatAsMoney(totalOrderedPrice)}
+            {formatAsMoney(totalPrice)}
           </div>
         </div>
       </div>

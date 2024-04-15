@@ -1,0 +1,13 @@
+{
+  "version": "5",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "5",
+      "when": 1713180981213,
+      "tag": "0000_noisy_millenium_guard",
+      "breakpoints": true
+    }
+  ]
+}

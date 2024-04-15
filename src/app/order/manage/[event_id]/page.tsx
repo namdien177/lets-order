@@ -17,6 +17,7 @@ import EditOrderEventInfoForm from "./(event-infomation)/info.form";
 import EventStatusForm from "@/app/order/manage/[event_id]/(event-status)/status.form";
 import OrderList from "@/app/order/manage/[event_id]/(order-list)/order-list";
 import { ORDER_EVENT_STATUS } from "@/server/db/constant";
+import CartList from "@/app/order/manage/[event_id]/(cart-list)/cart-list";
 
 type PageProps = NextPageProps<{
   event_id: string;
@@ -37,6 +38,10 @@ const Page = async ({ params: { event_id } }: PageProps) => {
   if (!eventInfo) {
     redirect("/404");
   }
+
+  const billableEvent =
+    eventInfo.eventStatus === ORDER_EVENT_STATUS.ACTIVE ||
+    eventInfo.eventStatus === ORDER_EVENT_STATUS.COMPLETED;
 
   return (
     <div className={"container mx-auto flex flex-col gap-8 p-4 md:p-8"}>
@@ -86,8 +91,7 @@ const Page = async ({ params: { event_id } }: PageProps) => {
           }}
         />
 
-        {(eventInfo.eventStatus === ORDER_EVENT_STATUS.ACTIVE ||
-          eventInfo.eventStatus === ORDER_EVENT_STATUS.COMPLETED) && (
+        {billableEvent && (
           <OrderList
             eventId={eventId}
             eventStatus={eventInfo.eventStatus}
@@ -95,6 +99,8 @@ const Page = async ({ params: { event_id } }: PageProps) => {
             clerkId={userId}
           />
         )}
+
+        {billableEvent && <CartList eventId={eventId} />}
       </div>
     </div>
   );

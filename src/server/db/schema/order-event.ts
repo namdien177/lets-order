@@ -22,6 +22,7 @@ export const OrderEventTable = createDbTable(
     })
       .notNull()
       .default(ORDER_EVENT_STATUS.DRAFT),
+    paymentAt: integer("payment_at", { mode: "timestamp_ms" }),
     paymentStatus: text("paymentStatus", {
       enum: [ORDER_PAYMENT_STATUS.PENDING, ORDER_PAYMENT_STATUS.PAID],
     })
