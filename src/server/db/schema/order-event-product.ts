@@ -1,7 +1,7 @@
 import { createDbTable } from "@/server/db/schema/_core";
 import { integer, text, unique } from "drizzle-orm/sqlite-core";
 import { relations, sql } from "drizzle-orm";
-import { ProductTable } from "@/server/db/schema/products";
+import { ProductTable } from "@/server/db/schema/product";
 import { OrderEventTable } from "@/server/db/schema/order-event";
 import { OrderItemTable } from "@/server/db/schema/order-item";
 

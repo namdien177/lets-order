@@ -7,20 +7,19 @@ import DebouncedInput from "@/components/form/debounce-input";
 import { Button } from "@/components/ui/button";
 import { useFieldArray, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { formatAsMoney, isNullish } from "@/lib/utils";
+import { cn, formatAsMoney, isNullish } from "@/lib/utils";
 import {
   type CartItemPayload,
   createCartItemSchema,
   type CreateCartPayload,
 } from "@/app/order/show/[event_id]/schema";
-import EventMenuBtn from "@/app/order/show/[event_id]/(active)/event-menu.btn";
+import EventMenuStatus from "@/app/order/show/[event_id]/(active)/event-menu.status";
 import {
   getAllProductsInEvent,
   PlacingOrderAction,
 } from "@/app/order/show/[event_id]/(active)/event-menu.action";
 import { BaseResponseType } from "@/lib/types/response.type";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
 
 type Props = {
   clerkId: string;
@@ -29,10 +28,10 @@ type Props = {
     id: number;
     items: Array<CartItemPayload>;
   };
+  onUpdated?: () => void;
 };
 
-const EventMenu = ({ eventId, cart }: Props) => {
-  const router = useRouter();
+const EventMenu = ({ eventId, cart, onUpdated }: Props) => {
   const [searchKey, setSearchKey] = useState("");
   const { data } = useQuery({
     queryKey: ["produc", searchKey, eventId],
@@ -78,11 +77,26 @@ const EventMenu = ({ eventId, cart }: Props) => {
     const result = await mutateAsync(data);
     if (result.type === BaseResponseType.success) {
       toast.success(result.message);
-      router.refresh();
+      onUpdated?.();
+      location.reload();
       return;
     }
 
     toast.error(result.error);
+  };
+
+  const toggleSelectItem = (item: CartItemPayload, itemIndex: number) => {
+    if (itemIndex > -1) {
+      remove(itemIndex);
+      return;
+    }
+    append({
+      id: item.id,
+      eventProductId: item.eventProductId,
+      name: item.name,
+      description: item.description,
+      price: item.price,
+    });
   };
 
   return (
@@ -90,6 +104,8 @@ const EventMenu = ({ eventId, cart }: Props) => {
       onSubmit={handleSubmit(onPlacingOrder)}
       className={"relative flex w-full flex-col gap-4"}
     >
+      <h1 className={"text-xl font-bold uppercase"}>Menu</h1>
+
       <div className={"relative inset-x-0 top-0 bg-background py-2"}>
         <Search
           size={16}
@@ -104,31 +120,33 @@ const EventMenu = ({ eventId, cart }: Props) => {
         />
       </div>
 
-      <h1 className={"text-xl font-bold uppercase"}>Menu</h1>
-
       <div className={"flex max-h-96 flex-col gap-4 overflow-y-auto"}>
-        {data?.map((product) => (
-          <div
-            key={product.id}
-            className={
-              "flex select-none items-center gap-4 rounded-md border border-accent p-4 hover:border-accent-foreground"
-            }
-          >
-            <div className="flex flex-1 flex-col">
-              <p className={"text-primary"}>{product.name}</p>
-              <small className={"line-clamp-2 text-accent-foreground"}>
-                {product.description}
-              </small>
+        {data?.map((product) => {
+          const itemIndex = getItemIndex(product.id, fields);
+          const isSelected = itemIndex > -1;
+
+          return (
+            <div
+              key={product.id}
+              className={cn(
+                "group flex cursor-pointer select-none items-center gap-4 rounded-md border-2 border-accent p-4 transition hover:border-accent-foreground",
+                isSelected
+                  ? "border-accent-foreground hover:border-accent-foreground/50"
+                  : "border-accent",
+              )}
+              onClick={() => toggleSelectItem(product, itemIndex)}
+            >
+              <div className="flex flex-1 flex-col">
+                <p className={"text-primary"}>{product.name}</p>
+                <small className={"line-clamp-2 text-muted-foreground"}>
+                  {product.description}
+                </small>
+              </div>
+              <p className={"text-primary"}>{formatAsMoney(product.price)}</p>
+              <EventMenuStatus isSelected={isSelected} />
             </div>
-            <p className={"text-primary"}>{formatAsMoney(product.price)}</p>
-            <EventMenuBtn
-              item={product}
-              itemIndex={getItemIndex(product.id, fields)}
-              onSelected={append}
-              onRemoved={remove}
-            />
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       <hr />

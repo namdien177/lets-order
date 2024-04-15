@@ -6,8 +6,11 @@ import {
   ProductTable,
 } from "@/server/db/schema";
 import { and, eq, gt } from "drizzle-orm";
+import { type ItemsFromCartsQuery } from "@/app/order/manage/[event_id]/type";
 
-export const queryItemsFromCarts = async (eventId: number) => {
+export const queryItemsFromCarts = async (
+  eventId: number,
+): Promise<ItemsFromCartsQuery[]> => {
   return db
     .select({
       "product.id": OrderEventProductTable.productId,
@@ -19,6 +22,7 @@ export const queryItemsFromCarts = async (eventId: number) => {
       cartId: OrderCartTable.id,
       paymentAt: OrderCartTable.paymentAt,
       paymentStatus: OrderCartTable.paymentStatus,
+      confirmationAt: OrderCartTable.paymentConfirmationAt,
       amount: OrderItemTable.amount,
     })
     .from(OrderEventProductTable)

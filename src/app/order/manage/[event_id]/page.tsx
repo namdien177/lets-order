@@ -96,6 +96,7 @@ const Page = async ({ params: { event_id } }: PageProps) => {
             eventId={eventId}
             eventStatus={eventInfo.eventStatus}
             paymentStatus={eventInfo.paymentStatus}
+            paymentAt={eventInfo.paymentAt}
             clerkId={userId}
           />
         )}

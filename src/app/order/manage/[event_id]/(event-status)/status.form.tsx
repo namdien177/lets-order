@@ -137,7 +137,11 @@ const EventStatusForm = ({ orderEvent }: Props) => {
           </>
         )}
 
-        <div className="flex flex-col items-center">
+        <div
+          className={cn("flex flex-col items-center", {
+            "flex-1": !previousStatus && !nextStatus,
+          })}
+        >
           <small
             className={
               "text-[10px] uppercase leading-tight text-muted-foreground"

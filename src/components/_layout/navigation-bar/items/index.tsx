@@ -1,6 +1,6 @@
 import { type HTMLAttributes } from "react";
 import { cn } from "@/lib/utils";
-import NavigationItem from "@/components/layout/navigation-bar/items/item";
+import NavigationItem from "@/components/_layout/navigation-bar/items/item";
 
 const NavigationItems = ({
   className,

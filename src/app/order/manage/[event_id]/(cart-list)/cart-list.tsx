@@ -10,6 +10,15 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { cn, formatAsMoney } from "@/lib/utils";
+import OwnerConfirmBtn from "@/app/order/manage/[event_id]/(cart-list)/owner-confirm.btn";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { CheckCircle } from "lucide-react";
 
 type CartListProps = {
   eventId: number;
@@ -33,52 +42,80 @@ const CartList = async ({ eventId }: CartListProps) => {
       </h1>
       <hr />
 
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>User</TableHead>
-            <TableHead className={"w-20 text-center"}>
-              Total
-              <br />
-              Items
-            </TableHead>
-            <TableHead className={"w-20 text-center"}>
-              Payment
-              <br />
-              Status{" "}
-            </TableHead>
-          </TableRow>
-        </TableHeader>
-
-        <TableBody>
-          {displayList.map((participant) => (
-            <TableRow key={participant.clerkId}>
-              <TableCell>{participant.name}</TableCell>
-              <TableCell className={"text-center"}>
-                {participant.items.length}
-              </TableCell>
-              <TableCell>
-                <Badge className={"capitalize"}>
-                  {participant.paymentStatus.toLocaleLowerCase()}
-                </Badge>
-              </TableCell>
+      <TooltipProvider>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className={"w-12"}>No.</TableHead>
+              <TableHead>User</TableHead>
+              <TableHead className={"w-20 text-center"}>
+                Payment
+                <br />
+                Status
+              </TableHead>
+              <TableHead className={"w-20 text-center"}>
+                Confirmation
+                <br />
+                Status
+              </TableHead>
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+          </TableHeader>
 
-      {/*<div className="flex flex-col gap-4">*/}
-      {/*  {displayList.map((participant) => (*/}
-      {/*    <div key={participant.clerkId} className={"border-l-2 pl-2"}>*/}
-      {/*      <div className="flex flex-col">*/}
-      {/*        <h2 className={"text-lg"}>{participant.name}</h2>*/}
-      {/*        <small className={"text-muted-foreground"}>*/}
-      {/*          {participant.items.length} item(s) ordered*/}
-      {/*        </small>*/}
-      {/*      </div>*/}
-      {/*    </div>*/}
-      {/*  ))}*/}
-      {/*</div>*/}
+          <TableBody>
+            {displayList.map((participant, index) => (
+              <TableRow key={participant.clerkId}>
+                <TableCell className={"text-right align-top"}>
+                  {index + 1}
+                </TableCell>
+                <TableCell className={"align-top"}>
+                  <div className="flex flex-col">
+                    <p>{participant.name}</p>
+                    <small className="text-muted-foreground">Items</small>
+
+                    <div className="flex flex-col gap-1 divide-y border p-2">
+                      {participant.items.map((orderItem, orderIndex) => (
+                        <div key={orderItem.id} className="flex gap-4 py-1">
+                          <div className="flex flex-1 flex-col">
+                            {orderItem.name}
+                          </div>
+                          <span className={"pl-2"}>
+                            {formatAsMoney(orderItem.price)}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </TableCell>
+                <TableCell className={"text-center align-top"}>
+                  <Badge className={"capitalize"}>
+                    {participant.paymentStatus.toLocaleLowerCase()}
+                  </Badge>
+                </TableCell>
+                <TableCell className={"text-center align-top"}>
+                  {participant.confirmationAt ? (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div className={"flex w-full justify-center"}>
+                          <CheckCircle
+                            size={24}
+                            className={cn("select-none text-green-500")}
+                          />
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        Confirmed at{" "}
+                        {participant.confirmationAt.toLocaleString()}
+                      </TooltipContent>
+                    </Tooltip>
+                  ) : (
+                    <OwnerConfirmBtn cartId={participant.cartId} />
+                  )}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TooltipProvider>
     </div>
   );
 };

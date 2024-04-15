@@ -9,19 +9,29 @@ import {
 import MarkPaidBtn from "@/app/order/manage/[event_id]/(order-list)/mark-paid.btn";
 import { queryItemsFromCarts } from "@/app/order/manage/[event_id]/query";
 import { displayAsOrderedItems } from "@/app/order/manage/[event_id]/mapper";
+import { type Nullable } from "@/lib/types/helper";
+import { format } from "date-fns";
 
 type Props = {
   viewAs?: "by-product" | "by-user";
   eventId: number;
   eventStatus: OrderEventStatus;
   paymentStatus: OrderPaymentStatus;
+  paymentAt: Nullable<Date>;
   clerkId: string;
 };
 
-const OrderList = async ({ eventId, eventStatus, paymentStatus }: Props) => {
+const OrderList = async ({
+  eventId,
+  eventStatus,
+  paymentStatus,
+  paymentAt,
+}: Props) => {
   const ableToCompletePayment =
     eventStatus === ORDER_EVENT_STATUS.COMPLETED &&
     paymentStatus === ORDER_PAYMENT_STATUS.PENDING;
+
+  const isCompletePayment = paymentStatus === ORDER_PAYMENT_STATUS.PAID;
 
   const itemWithAmount = await queryItemsFromCarts(eventId);
   const {
@@ -100,20 +110,35 @@ const OrderList = async ({ eventId, eventStatus, paymentStatus }: Props) => {
         </div>
       </div>
 
-      <div className="flex items-center justify-end gap-4">
-        {!ableToCompletePayment && (
-          <span
-            className={
-              "flex-1 select-none text-right text-sm text-muted-foreground"
-            }
-          >
-            Please complete the payment to mark as paid.
-          </span>
-        )}
-        <MarkPaidBtn eventId={eventId} disabled={!ableToCompletePayment}>
-          Mark as Paid
-        </MarkPaidBtn>
-      </div>
+      {!isCompletePayment ? (
+        <div className="flex items-center justify-end gap-4">
+          {!ableToCompletePayment && (
+            <span
+              className={
+                "flex-1 select-none text-right text-sm text-muted-foreground"
+              }
+            >
+              Please complete the payment to mark as paid.
+            </span>
+          )}
+          <MarkPaidBtn eventId={eventId} disabled={!ableToCompletePayment}>
+            Mark as Paid
+          </MarkPaidBtn>
+        </div>
+      ) : (
+        <div
+          className={
+            "flex flex-col items-center justify-center gap-1 rounded border border-green-700 p-2 text-xl font-bold italic text-green-700"
+          }
+        >
+          <span>PAID</span>
+          {paymentAt && (
+            <small className="text-xs font-normal text-muted-foreground">
+              at {format(paymentAt, "yyyy/MM/dd - hh:mm:ss")}
+            </small>
+          )}
+        </div>
+      )}
     </div>
   );
 };

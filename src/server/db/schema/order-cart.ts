@@ -12,6 +12,9 @@ export const OrderCartTable = createDbTable(
     clerkId: text("clerk_id").notNull(),
     eventId: integer("event_id", { mode: "number" }).notNull(),
     note: text("note"),
+    paymentConfirmationAt: integer("payment_confirmation_at", {
+      mode: "timestamp_ms",
+    }),
     paymentAt: integer("payment_at", { mode: "timestamp_ms" }),
     paymentStatus: text("payment_status", {
       enum: [ORDER_PAYMENT_STATUS.PENDING, ORDER_PAYMENT_STATUS.PAID],

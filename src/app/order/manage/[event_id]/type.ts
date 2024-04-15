@@ -11,6 +11,7 @@ export type ItemsFromCartsQuery = {
   cartId: number;
   paymentAt: Nullable<Date>;
   paymentStatus: OrderPaymentStatus;
+  confirmationAt: Nullable<Date>;
   amount: number;
 };
 
@@ -22,7 +23,9 @@ export type ItemsFromCartsOutput = {
   carts: {
     clerkId: string;
     amount: number;
+    paymentAt: Nullable<Date>;
     paymentStatus: OrderPaymentStatus;
+    confirmationAt: Nullable<Date>;
   }[];
   totalAmount: number;
 };
@@ -32,7 +35,9 @@ export type ParticipantFromEventOutput = {
   eventId: number;
   amount: number;
   cartId: number;
+  paymentAt: Nullable<Date>;
   paymentStatus: OrderPaymentStatus;
+  confirmationAt: Nullable<Date>;
   name: string;
   email: string;
   items: Array<{

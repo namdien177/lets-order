@@ -5,7 +5,7 @@ import { auth } from "@clerk/nextjs";
 import {
   type AuthErrorResponse,
   BaseResponseType,
-  type InvalidResponse,
+  type InvalidErrorResponse,
   type NotFoundErrorResponse,
   type ServerErrorResponse,
   type SuccessResponseData,
@@ -64,7 +64,7 @@ const createCart = async (clerkId: string, orderPayload: CreateCartPayload) => {
     throw {
       type: BaseResponseType.invalid,
       error: "Some items are not valid, try to refresh the page and try again",
-    } as InvalidResponse;
+    } as InvalidErrorResponse;
   }
 
   // insert items
@@ -201,7 +201,7 @@ export const PlacingOrderAction = async (orderPayload: CreateCartPayload) => {
       return {
         type: BaseResponseType.invalid,
         error: "Cart must have at least one item",
-      } as InvalidResponse;
+      } as InvalidErrorResponse;
     }
 
     try {

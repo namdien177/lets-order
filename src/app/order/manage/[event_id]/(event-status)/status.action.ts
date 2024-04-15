@@ -7,7 +7,7 @@ import {
 import {
   type AuthErrorResponse,
   BaseResponseType,
-  type InvalidResponse,
+  type InvalidErrorResponse,
   type ServerErrorResponse,
   type SuccessResponseData,
 } from "@/lib/types/response.type";
@@ -34,7 +34,7 @@ export const updateEventToStatus = async (event: EventStatusPayload) => {
       type: BaseResponseType.invalid,
       error: "Invalid payload",
       meta: validatePayload.error.errors,
-    } as InvalidResponse<ZodIssue[]>;
+    } as InvalidErrorResponse<ZodIssue[]>;
   }
 
   const { userId } = auth();

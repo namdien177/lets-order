@@ -46,6 +46,7 @@ export const markEventPaid = async (eventId: number) => {
       .update(OrderEventTable)
       .set({
         paymentStatus: ORDER_PAYMENT_STATUS.PAID,
+        paymentAt: new Date(),
       })
       .where(eq(OrderEventTable.id, eventId));
     return updatedResult.rowsAffected === 1;

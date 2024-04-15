@@ -1,5 +1,5 @@
-import NavigationLogo from "@/components/layout/navigation-bar/logo";
-import NavigationItems from "@/components/layout/navigation-bar/items";
+import NavigationLogo from "@/components/_layout/navigation-bar/logo";
+import NavigationItems from "@/components/_layout/navigation-bar/items";
 import {
   SignedIn,
   SignedOut,
@@ -14,13 +14,14 @@ const NavigationBar = () => {
     <div className="sticky top-0 z-50 flex h-16 items-center border-b bg-background px-4">
       <NavigationLogo />
 
-      <NavigationItems className="mx-6 flex-1 overflow-x-auto" />
-
-      <div className="flex items-center gap-4">
-        <SignedIn>
+      <SignedIn>
+        <NavigationItems className="mx-6 flex-1 overflow-x-auto" />
+        <div className="flex items-center gap-4">
           <UserButton />
-        </SignedIn>
-        <SignedOut>
+        </div>
+      </SignedIn>
+      <SignedOut>
+        <div className="flex flex-1 items-center justify-end gap-4">
           <SignUpButton>
             <Button variant="ghost">Sign Up</Button>
           </SignUpButton>
@@ -28,8 +29,8 @@ const NavigationBar = () => {
           <SignInButton>
             <Button>Sign In</Button>
           </SignInButton>
-        </SignedOut>
-      </div>
+        </div>
+      </SignedOut>
     </div>
   );
 };

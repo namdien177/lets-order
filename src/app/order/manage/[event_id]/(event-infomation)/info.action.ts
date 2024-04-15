@@ -8,7 +8,7 @@ import { auth } from "@clerk/nextjs";
 import {
   type AuthErrorResponse,
   BaseResponseType,
-  type InvalidResponse,
+  type InvalidErrorResponse,
   type NotFoundErrorResponse,
   type ServerErrorResponse,
   type SuccessResponseData,
@@ -30,7 +30,7 @@ export const updateOrderEventInfo = async (
       type: BaseResponseType.invalid,
       error: "Invalid payload",
       meta: validatePayload.error.errors,
-    } as InvalidResponse<ZodIssue[]>;
+    } as InvalidErrorResponse<ZodIssue[]>;
   }
   const payload = validatePayload.data;
 

@@ -31,6 +31,8 @@ export const displayAsOrderedItems = (
             clerkId: cartItem.clerkId,
             amount: cartItem.amount,
             paymentStatus: cartItem.paymentStatus,
+            paymentAt: cartItem.paymentAt,
+            confirmationAt: cartItem.confirmationAt,
           },
         ],
         totalAmount: cartItem.amount,
@@ -40,6 +42,8 @@ export const displayAsOrderedItems = (
         clerkId: cartItem.clerkId,
         amount: cartItem.amount,
         paymentStatus: cartItem.paymentStatus,
+        paymentAt: cartItem.paymentAt,
+        confirmationAt: cartItem.confirmationAt,
       });
       recordedProduct.totalAmount =
         recordedProduct.totalAmount + cartItem.amount;
@@ -107,9 +111,11 @@ export const displayAsParticipantItems = (
         eventId: cartItem.eventId,
         amount: cartItem.amount,
         cartId: cartItem.cartId,
-        paymentStatus: cartItem.paymentStatus,
         clerkId: cartItem.clerkId,
         ...defaultUserInfo,
+        paymentStatus: cartItem.paymentStatus,
+        paymentAt: cartItem.paymentAt,
+        confirmationAt: cartItem.confirmationAt,
         items: [
           {
             id: cartItem["product.id"],

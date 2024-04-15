@@ -24,7 +24,7 @@ type PageProps = NextPageProps<{
 }>;
 
 const Page = async ({ params: { event_id } }: PageProps) => {
-  const clienthost = env.CLIENT_HOST;
+  const clientHost = env.CLIENT_HOST;
 
   const { userId } = auth();
   const eventId = parseInt(event_id);
@@ -56,6 +56,8 @@ const Page = async ({ params: { event_id } }: PageProps) => {
   if (!orderEvent) {
     redirect("/404");
   }
+
+  const isOwner = orderEvent.clerkId === userId;
 
   const userCart = orderEvent.carts.at(0);
   let cart: { id: number; items: Array<CartItemPayload> } | undefined;
@@ -112,24 +114,26 @@ const Page = async ({ params: { event_id } }: PageProps) => {
               size={"sm"}
               className={"gap-2"}
               variant={"outline"}
-              copyContent={`${clienthost}/order/show/${orderEvent.id}`}
+              copyContent={`${clientHost}/order/show/${orderEvent.id}`}
             >
               <Share2 size={16} />
               <span>Share</span>
             </EventShareBtn>
           </div>
 
-          <Link
-            href={`/order/manage/${orderEvent.id}`}
-            className={buttonVariants({
-              variant: "outline",
-              className: "gap-2",
-              size: "sm",
-            })}
-          >
-            <Settings size={16} />
-            <span>Manage</span>
-          </Link>
+          {isOwner && (
+            <Link
+              href={`/order/manage/${orderEvent.id}`}
+              className={buttonVariants({
+                variant: "outline",
+                className: "gap-2",
+                size: "sm",
+              })}
+            >
+              <Settings size={16} />
+              <span>Manage</span>
+            </Link>
+          )}
         </div>
 
         <hr />
