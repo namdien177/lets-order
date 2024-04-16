@@ -30,6 +30,7 @@ type Props = {
 const EditOrderEventInfoForm = ({ orderEvent }: Props) => {
   const formShouldDisabled =
     orderEvent.status === ORDER_EVENT_STATUS.COMPLETED ||
+    orderEvent.status === ORDER_EVENT_STATUS.LOCKED ||
     orderEvent.status === ORDER_EVENT_STATUS.CANCELLED;
 
   const { mutateAsync, isPending } = useMutation({

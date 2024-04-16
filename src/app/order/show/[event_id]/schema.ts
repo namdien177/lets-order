@@ -1,4 +1,6 @@
 import { z } from "zod";
+import { type Nullable } from "@/lib/types/helper";
+import { type OrderPaymentStatus } from "@/server/db/constant";
 
 export const cartItemSchema = z.object({
   id: z.number(),
@@ -17,3 +19,11 @@ export const createCartItemSchema = z.object({
 });
 
 export type CreateCartPayload = z.infer<typeof createCartItemSchema>;
+
+export type ShowingCart = {
+  id: number;
+  confirmedAt: Nullable<Date>;
+  paymentAt: Nullable<Date>;
+  paymentStatus: OrderPaymentStatus;
+  items: Array<CartItemPayload>;
+};

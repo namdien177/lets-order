@@ -37,6 +37,9 @@ const calculateStatusAction = (currentStatus: OrderEventStatus) => {
   } else if (currentStatus === ORDER_EVENT_STATUS.ACTIVE) {
     fullBackStatus = ORDER_EVENT_STATUS.CANCELLED;
     previousStatus = ORDER_EVENT_STATUS.DRAFT;
+    nextStatus = ORDER_EVENT_STATUS.LOCKED;
+  } else if (currentStatus === ORDER_EVENT_STATUS.LOCKED) {
+    previousStatus = ORDER_EVENT_STATUS.ACTIVE;
     nextStatus = ORDER_EVENT_STATUS.COMPLETED;
   } else if (currentStatus === ORDER_EVENT_STATUS.COMPLETED) {
     // previousStatus = ORDER_EVENT_STATUS.ACTIVE;

@@ -55,6 +55,7 @@ export const updateOrderEventInfo = async (
           eq(OrderEventTable.clerkId, userId),
           or(
             ne(OrderEventTable.eventStatus, ORDER_EVENT_STATUS.COMPLETED),
+            ne(OrderEventTable.eventStatus, ORDER_EVENT_STATUS.LOCKED),
             ne(OrderEventTable.eventStatus, ORDER_EVENT_STATUS.CANCELLED),
           ),
         ),

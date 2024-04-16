@@ -19,21 +19,25 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { CheckCircle } from "lucide-react";
+import {
+  ORDER_EVENT_STATUS,
+  type OrderEventStatus,
+} from "@/server/db/constant";
 
 type CartListProps = {
   eventId: number;
+  eventStatus: OrderEventStatus;
 };
 
-const CartList = async ({ eventId }: CartListProps) => {
+const CartList = async ({ eventId, eventStatus }: CartListProps) => {
   const itemWithAmount = await queryItemsFromCarts(eventId);
   const clerkUsers = await clerkClient.users.getUserList({
     userId: itemWithAmount.map((item) => item.clerkId),
   });
-  const {
-    data: displayList,
-    totalPrice,
-    totalAmount,
-  } = displayAsParticipantItems(itemWithAmount, clerkUsers);
+  const { data: displayList } = displayAsParticipantItems(
+    itemWithAmount,
+    clerkUsers,
+  );
 
   return (
     <div className={"flex flex-col gap-4 rounded border p-4"}>
@@ -72,8 +76,8 @@ const CartList = async ({ eventId }: CartListProps) => {
                     <p>{participant.name}</p>
                     <small className="text-muted-foreground">Items</small>
 
-                    <div className="flex flex-col gap-1 divide-y border p-2">
-                      {participant.items.map((orderItem, orderIndex) => (
+                    <div className="flex flex-col gap-1 divide-y border px-2 py-1">
+                      {participant.items.map((orderItem) => (
                         <div key={orderItem.id} className="flex gap-4 py-1">
                           <div className="flex flex-1 flex-col">
                             {orderItem.name}
@@ -92,23 +96,34 @@ const CartList = async ({ eventId }: CartListProps) => {
                   </Badge>
                 </TableCell>
                 <TableCell className={"text-center align-top"}>
-                  {participant.confirmationAt ? (
+                  {eventStatus === ORDER_EVENT_STATUS.COMPLETED ? (
+                    participant.confirmationAt ? (
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <div className={"flex w-full justify-center"}>
+                            <CheckCircle
+                              size={24}
+                              className={cn("select-none text-green-500")}
+                            />
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          Confirmed at{" "}
+                          {participant.confirmationAt.toLocaleString()}
+                        </TooltipContent>
+                      </Tooltip>
+                    ) : (
+                      <OwnerConfirmBtn cartId={participant.cartId} />
+                    )
+                  ) : (
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <div className={"flex w-full justify-center"}>
-                          <CheckCircle
-                            size={24}
-                            className={cn("select-none text-green-500")}
-                          />
-                        </div>
+                        <small className={"text-muted-foreground"}>N/A</small>
                       </TooltipTrigger>
                       <TooltipContent>
-                        Confirmed at{" "}
-                        {participant.confirmationAt.toLocaleString()}
+                        The event is not completed yet
                       </TooltipContent>
                     </Tooltip>
-                  ) : (
-                    <OwnerConfirmBtn cartId={participant.cartId} />
                   )}
                 </TableCell>
               </TableRow>

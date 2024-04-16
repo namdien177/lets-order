@@ -30,14 +30,51 @@ const EventBadgeStatus = ({
   }
 
   if (data.eventStatus === ORDER_EVENT_STATUS.COMPLETED) {
-    return <Badge {...props}>COMPLETED</Badge>;
+    return (
+      <Badge
+        {...props}
+        className={cn(
+          "bg-blue-600 hover:bg-blue-700",
+          "select-none text-white",
+          className,
+        )}
+      >
+        Completed
+      </Badge>
+    );
+  }
+
+  if (data.eventStatus === ORDER_EVENT_STATUS.LOCKED) {
+    return (
+      <Badge
+        {...props}
+        className={cn(
+          "bg-yellow-600 hover:bg-yellow-700",
+          "select-none text-white",
+          className,
+        )}
+      >
+        Locked
+      </Badge>
+    );
   }
 
   if (data.eventStatus === ORDER_EVENT_STATUS.CANCELLED) {
-    return <Badge {...props}>CANCELLED</Badge>;
+    return (
+      <Badge
+        {...props}
+        className={cn(
+          "bg-red-600 hover:bg-red-700",
+          "select-none text-white",
+          className,
+        )}
+      >
+        Cancelled
+      </Badge>
+    );
   }
 
-  return <Badge {...props}>Unavailable</Badge>;
+  return <Badge {...props}>Drafting Stage</Badge>;
 };
 
 export default EventBadgeStatus;

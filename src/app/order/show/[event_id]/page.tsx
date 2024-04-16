@@ -13,11 +13,14 @@ import {
 } from "@/components/ui/breadcrumb";
 import EventMenu from "@/app/order/show/[event_id]/(active)/event-menu";
 import { auth } from "@clerk/nextjs";
-import { type CartItemPayload } from "@/app/order/show/[event_id]/schema";
+import { type ShowingCart } from "@/app/order/show/[event_id]/schema";
 import EventShareBtn from "@/app/order/show/[event_id]/event-share.btn";
 import { env } from "@/env";
 import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button";
+import { ORDER_EVENT_STATUS } from "@/server/db/constant";
+import EventPaymentInfo from "@/app/order/show/[event_id]/(completed)/event-payment";
+import { type Optional } from "@/lib/types/helper";
 
 type PageProps = NextPageProps<{
   event_id: string;
@@ -58,12 +61,19 @@ const Page = async ({ params: { event_id } }: PageProps) => {
   }
 
   const isOwner = orderEvent.clerkId === userId;
+  const isOrderAble = orderEvent.eventStatus === ORDER_EVENT_STATUS.ACTIVE;
+  const isInPaymentState =
+    orderEvent.eventStatus === ORDER_EVENT_STATUS.COMPLETED ||
+    orderEvent.eventStatus === ORDER_EVENT_STATUS.LOCKED;
 
   const userCart = orderEvent.carts.at(0);
-  let cart: { id: number; items: Array<CartItemPayload> } | undefined;
+  let cart: Optional<ShowingCart>;
   if (userCart) {
     cart = {
       id: userCart.id,
+      confirmedAt: userCart.paymentConfirmationAt,
+      paymentAt: userCart.paymentAt,
+      paymentStatus: userCart.paymentStatus,
       items: userCart.itemsInCart.map((item) => ({
         id: item.registeredProduct.productId,
         eventProductId: item.orderEventProductId,
@@ -114,7 +124,10 @@ const Page = async ({ params: { event_id } }: PageProps) => {
               size={"sm"}
               className={"gap-2"}
               variant={"outline"}
-              copyContent={`${clientHost}/order/show/${orderEvent.id}`}
+              copyContent={new URL(
+                `/order/show/${orderEvent.id}`,
+                clientHost,
+              ).toString()}
             >
               <Share2 size={16} />
               <span>Share</span>
@@ -138,7 +151,13 @@ const Page = async ({ params: { event_id } }: PageProps) => {
 
         <hr />
 
-        <EventMenu clerkId={userId} eventId={orderEvent.id} cart={cart} />
+        {isOrderAble && (
+          <EventMenu clerkId={userId} eventId={orderEvent.id} cart={cart} />
+        )}
+
+        {isInPaymentState && cart && (
+          <EventPaymentInfo event={orderEvent} cart={cart} />
+        )}
       </div>
     </div>
   );

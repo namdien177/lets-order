@@ -4,6 +4,7 @@ export const ORDER_EVENT_STATUS = {
   CANCELLED: "CANCELLED",
   DRAFT: "DRAFT",
   ACTIVE: "ACTIVE",
+  LOCKED: "LOCKED",
   COMPLETED: "COMPLETED",
 } as const;
 

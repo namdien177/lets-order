@@ -17,6 +17,7 @@ export const OrderEventTable = createDbTable(
         ORDER_EVENT_STATUS.CANCELLED,
         ORDER_EVENT_STATUS.DRAFT,
         ORDER_EVENT_STATUS.ACTIVE,
+        ORDER_EVENT_STATUS.LOCKED,
         ORDER_EVENT_STATUS.COMPLETED,
       ],
     })

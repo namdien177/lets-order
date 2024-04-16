@@ -41,6 +41,7 @@ const Page = async ({ params: { event_id } }: PageProps) => {
 
   const billableEvent =
     eventInfo.eventStatus === ORDER_EVENT_STATUS.ACTIVE ||
+    eventInfo.eventStatus === ORDER_EVENT_STATUS.LOCKED ||
     eventInfo.eventStatus === ORDER_EVENT_STATUS.COMPLETED;
 
   return (
@@ -101,7 +102,9 @@ const Page = async ({ params: { event_id } }: PageProps) => {
           />
         )}
 
-        {billableEvent && <CartList eventId={eventId} />}
+        {billableEvent && (
+          <CartList eventId={eventId} eventStatus={eventInfo.eventStatus} />
+        )}
       </div>
     </div>
   );

@@ -12,6 +12,7 @@ import {
   type CartItemPayload,
   createCartItemSchema,
   type CreateCartPayload,
+  type ShowingCart,
 } from "@/app/order/show/[event_id]/schema";
 import EventMenuStatus from "@/app/order/show/[event_id]/(active)/event-menu.status";
 import {
@@ -24,10 +25,7 @@ import { toast } from "sonner";
 type Props = {
   clerkId: string;
   eventId: number;
-  cart?: {
-    id: number;
-    items: Array<CartItemPayload>;
-  };
+  cart?: ShowingCart;
   onUpdated?: () => void;
 };
 
