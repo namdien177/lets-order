@@ -10,4 +10,5 @@ export default {
     authToken: env.DATABASE_TOKEN,
   },
   tablesFilter: ["lets-order_*"],
+  out: "./migrations",
 } satisfies Config;

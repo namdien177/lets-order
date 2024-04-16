@@ -1,34 +1,46 @@
 import { buttonVariants } from "@/components/ui/button";
+import {
+  Card,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import Link from "next/link";
-import OrderGroupQuickJoinForm from "@/components/quick-join/simple-form";
 
 export default function HomePage() {
   return (
-    <main className="flex min-h-screen flex-col">
-      <div className="flex flex-1 flex-col items-center justify-center gap-4">
-        <h1 className="text-4xl font-bold">
-          Welcome to <span className={"font-bold"}>Let&apos;s Order</span>
-        </h1>
+    <main className="container mx-auto flex min-h-screen flex-col gap-8 p-8">
+      <div className="flex flex-col gap-8 overflow-x-auto md:flex-row md:flex-nowrap">
+        <Card className="w-full md:w-80">
+          <CardHeader className="pb-3">
+            <CardTitle>Your Orders</CardTitle>
+            <CardDescription>
+              Create and manage your orders. View your order history and
+              download invoices.
+            </CardDescription>
+          </CardHeader>
+          <CardFooter>
+            <Link className={buttonVariants()} href={"/order/create"}>
+              Create Order
+            </Link>
+          </CardFooter>
+        </Card>
 
-        <div className="flex items-center gap-2">
-          <Link href={"/create/group-order"} className={buttonVariants()}>
-            Create your Group
-          </Link>
-          <small className={"text-gray-500"}>or</small>
-          <OrderGroupQuickJoinForm />
-        </div>
+        <Card className="w-full md:w-80">
+          <CardHeader className="pb-3">
+            <CardTitle>Your Products</CardTitle>
+            <CardDescription>
+              Create preset products for easy order creation and management.
+            </CardDescription>
+          </CardHeader>
+          <CardFooter>
+            <Link className={buttonVariants()} href={"product/create"}>
+              Create Product
+            </Link>
+          </CardFooter>
+        </Card>
       </div>
-      <footer className="flex h-16 w-full items-center justify-center border-t">
-        <a
-          className="flex items-center justify-center"
-          href="https://t3.gg"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Powered by{" "}
-          <img src="/t3-logo.svg" alt="T3 Logo" className="ml-2 h-4" />
-        </a>
-      </footer>
     </main>
   );
 }

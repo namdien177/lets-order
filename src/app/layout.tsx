@@ -2,8 +2,8 @@ import "@/styles/globals.css";
 
 import { Inter } from "next/font/google";
 import RootProvider from "@/app/providers";
-import NavigationBar from "@/components/layout/navigation-bar";
 import { Toaster } from "@/components/ui/sonner";
+import NavigationBar from "@/components/_layout/navigation-bar";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -23,8 +23,8 @@ export default function RootLayout({
 }) {
   return (
     <RootProvider>
-      <html lang="en">
-        <body className={`bg-gray-100 font-sans ${inter.variable}`}>
+      <html lang="en" className={"dark"}>
+        <body className={`font-sans ${inter.variable}`}>
           <NavigationBar />
           {children}
           <Toaster />
