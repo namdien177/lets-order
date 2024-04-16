@@ -99,7 +99,9 @@ export const displayAsParticipantItems = (
       };
       if (splicedUser) {
         defaultUserInfo = {
-          name: `${splicedUser.firstName} ${splicedUser.lastName}`,
+          name: splicedUser.firstName
+            ? `${splicedUser.firstName} ${splicedUser.lastName}`
+            : splicedUser.username ?? "N/A",
           email:
             splicedUser.emailAddresses.find(
               (email) => email.id === splicedUser.primaryEmailAddressId,
