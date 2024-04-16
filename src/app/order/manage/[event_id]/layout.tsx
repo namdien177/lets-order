@@ -1,17 +1,16 @@
-import { type PropsWithChildren } from "react";
-import { type NextPageProps } from "@/lib/types/nextjs";
+import { type ReactNode } from "react";
 import { db } from "@/server/db";
 import { auth } from "@clerk/nextjs";
 import { redirect } from "next/navigation";
 
-type LayoutProps = NextPageProps<{
-  event_id: string;
-}>;
+type LayoutProps = {
+  children?: ReactNode;
+  params: {
+    event_id: string;
+  };
+};
 
-const LayoutManageOrder = async ({
-  children,
-  params,
-}: PropsWithChildren<LayoutProps>) => {
+const LayoutManageOrder = async ({ children, params }: LayoutProps) => {
   const { userId } = auth();
   const eventId = Number(params.event_id);
 
