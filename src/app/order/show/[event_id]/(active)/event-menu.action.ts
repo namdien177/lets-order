@@ -129,10 +129,10 @@ const upsertCart = async (
   ];
 
   cartItems.forEach((existItem) => {
-    const foundIndex = orderPayload.items.findIndex(
-      (inPayload) => inPayload.eventProductId === existItem.orderEventProductId,
+    const foundIndex = toInsertItems.findIndex(
+      (inPayload) =>
+        inPayload.orderEventProductId === existItem.orderEventProductId,
     );
-    const fromPayload = orderPayload.items[foundIndex];
 
     if (foundIndex === -1) {
       toDeleteItems.push(existItem);
