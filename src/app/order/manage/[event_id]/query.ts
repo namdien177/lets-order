@@ -32,7 +32,10 @@ export const queryItemsFromCarts = async (
     )
     .innerJoin(
       OrderItemTable,
-      eq(OrderItemTable.orderEventProductId, OrderEventProductTable.id),
+      and(
+        eq(OrderItemTable.orderEventProductId, OrderEventProductTable.id),
+        eq(OrderItemTable.cartId, OrderCartTable.id),
+      ),
     )
     .innerJoin(
       ProductTable,
