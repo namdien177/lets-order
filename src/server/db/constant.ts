@@ -1,11 +1,11 @@
 import type { ObjectType } from "@/lib/types/helper";
 
 export const ORDER_EVENT_STATUS = {
-  CANCELLED: "CANCELLED",
-  DRAFT: "DRAFT",
-  ACTIVE: "ACTIVE",
-  LOCKED: "LOCKED",
-  COMPLETED: "COMPLETED",
+  CANCELLED: -1,
+  DRAFT: 0,
+  ACTIVE: 1,
+  LOCKED: 2,
+  COMPLETED: 3,
 } as const;
 
 export type OrderEventStatus = ObjectType<typeof ORDER_EVENT_STATUS>;

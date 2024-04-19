@@ -57,7 +57,7 @@ export const queryOrders = async ({
     .select({
       id: OrderEventTable.id,
       name: OrderEventTable.name,
-      eventStatus: OrderEventTable.eventStatus,
+      status: OrderEventTable.status,
       paymentStatus: OrderEventTable.paymentStatus,
       endingAt: OrderEventTable.endingAt,
       createdAt: OrderEventTable.createdAt,

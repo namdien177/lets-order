@@ -14,7 +14,7 @@ const EventBadgeStatus = ({
 }: Props) => {
   const className = cn("rounded-md", optClassName);
 
-  if (data.eventStatus === ORDER_EVENT_STATUS.ACTIVE) {
+  if (data.status === ORDER_EVENT_STATUS.ACTIVE) {
     return (
       <Badge
         {...props}
@@ -29,7 +29,7 @@ const EventBadgeStatus = ({
     );
   }
 
-  if (data.eventStatus === ORDER_EVENT_STATUS.COMPLETED) {
+  if (data.status === ORDER_EVENT_STATUS.COMPLETED) {
     return (
       <Badge
         {...props}
@@ -44,7 +44,7 @@ const EventBadgeStatus = ({
     );
   }
 
-  if (data.eventStatus === ORDER_EVENT_STATUS.LOCKED) {
+  if (data.status === ORDER_EVENT_STATUS.LOCKED) {
     return (
       <Badge
         {...props}
@@ -59,7 +59,7 @@ const EventBadgeStatus = ({
     );
   }
 
-  if (data.eventStatus === ORDER_EVENT_STATUS.CANCELLED) {
+  if (data.status === ORDER_EVENT_STATUS.CANCELLED) {
     return (
       <Badge
         {...props}

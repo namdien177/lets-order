@@ -24,9 +24,9 @@ import { useMutation } from "@tanstack/react-query";
 import { updateEventToStatus } from "@/app/order/manage/[event_id]/(event-status)/status.action";
 import { BaseResponseType } from "@/lib/types/response.type";
 import { toast } from "sonner";
-import { cn } from "@/lib/utils";
+import { cn, getEventStatusVerbose } from "@/lib/utils";
 
-const calculateStatusAction = (currentStatus: OrderEventStatus) => {
+const calculateStatusAction = (currentStatus: number) => {
   let fullBackStatus: Optional<OrderEventStatus>;
   let previousStatus: Optional<OrderEventStatus>;
   let nextStatus: Optional<OrderEventStatus>;
@@ -118,7 +118,7 @@ const EventStatusForm = ({ orderEvent }: Props) => {
               </TooltipTrigger>
               <TooltipContent>
                 <p className={"cursor-pointer capitalize"}>
-                  to {fullBackStatus.toLocaleLowerCase()}
+                  to {getEventStatusVerbose(fullBackStatus)}
                 </p>
               </TooltipContent>
             </Tooltip>
@@ -133,7 +133,7 @@ const EventStatusForm = ({ orderEvent }: Props) => {
                 "flex-1": !nextStatus,
               })}
             >
-              to {previousStatus.toLocaleLowerCase()}
+              to {getEventStatusVerbose(previousStatus)}
             </Button>
 
             <ArrowLeft size={16} />
@@ -153,7 +153,7 @@ const EventStatusForm = ({ orderEvent }: Props) => {
             current
           </small>
           <span className={"font-bold capitalize leading-tight"}>
-            {currentStatus.toLocaleLowerCase()}
+            {getEventStatusVerbose(currentStatus)}
           </span>
         </div>
 
@@ -167,7 +167,7 @@ const EventStatusForm = ({ orderEvent }: Props) => {
                 disabled={isPending}
                 className={"w-full capitalize"}
               >
-                to {nextStatus.toLocaleLowerCase()}
+                to {getEventStatusVerbose(nextStatus)}
               </Button>
             </div>
           </>

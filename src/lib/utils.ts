@@ -1,8 +1,9 @@
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { type QueryParamsWithSearch } from "@/lib/types/pagination.types";
+import { type UnSafePaginationParams } from "@/lib/types/pagination.types";
 import { type Nullish, type Optional } from "@/lib/types/helper";
 import { z } from "zod";
+import { ORDER_EVENT_STATUS } from "@/server/db/constant";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -30,23 +31,46 @@ export function isMatchingPath(
   }
 }
 
+export function getEventStatusVerbose(status: number) {
+  switch (status) {
+    case ORDER_EVENT_STATUS.CANCELLED:
+      return "cancelled";
+    case ORDER_EVENT_STATUS.DRAFT:
+      return "drafting";
+    case ORDER_EVENT_STATUS.ACTIVE:
+      return "active";
+    case ORDER_EVENT_STATUS.LOCKED:
+      return "locked";
+    case ORDER_EVENT_STATUS.COMPLETED:
+      return "completed";
+    default:
+      return "unknown";
+  }
+}
+
 export function extractPaginationParams(
-  raw: QueryParamsWithSearch,
+  raw?: UnSafePaginationParams,
   opts?: {
     defaultPage?: number;
     defaultPerPage?: number;
+    minKeywordLength?: number;
   },
 ) {
   let page = opts?.defaultPage ?? 1;
   let limit = opts?.defaultPerPage ?? 10;
+  const minKeywordLength = opts?.minKeywordLength ?? 3;
   let keyword: Optional<string> = undefined;
 
   try {
-    page = isNullish(raw.page) ? page : z.coerce.number().parse(raw.page);
-    limit = isNullish(raw.limit) ? limit : z.coerce.number().parse(raw.limit);
-    keyword = isNullish(raw.keyword)
-      ? keyword
-      : z.coerce.string().parse(raw.keyword);
+    page = isNullish(raw?.page) ? page : z.coerce.number().parse(raw.page);
+    page = page < 1 ? 1 : page;
+    limit = isNullish(raw?.limit) ? limit : z.coerce.number().parse(raw.limit);
+    limit = limit < 1 ? 1 : limit;
+    keyword = isNullish(raw?.keyword) ? undefined : raw.keyword.trim();
+    keyword =
+      !isNullish(keyword) && keyword.length < minKeywordLength
+        ? undefined
+        : keyword;
   } catch (err) {
     // ignore
   }

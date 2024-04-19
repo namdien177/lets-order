@@ -29,7 +29,7 @@ export const markEventPaid = async (eventId: number) => {
       and(
         eq(table.id, eventId),
         eq(table.clerkId, userId),
-        eq(table.eventStatus, ORDER_EVENT_STATUS.COMPLETED),
+        eq(table.status, ORDER_EVENT_STATUS.COMPLETED),
         eq(table.paymentStatus, ORDER_PAYMENT_STATUS.PENDING),
       ),
   });

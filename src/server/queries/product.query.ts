@@ -1,24 +1,22 @@
-import { type PaginationParams } from "@/lib/types/pagination.types";
+import { type UnSafePaginationParams } from "@/lib/types/pagination.types";
 import { db } from "@/server/db";
 import { ProductTable } from "@/server/db/schema";
 import { and, count, eq, isNull, like, or, type SQLWrapper } from "drizzle-orm";
+import { extractPaginationParams } from "@/lib/utils";
 
-type SearchProps = PaginationParams & {
+type SearchProps = UnSafePaginationParams & {
   clerkId: string;
+  withDelete?: boolean;
   additionalWhere?: (SQLWrapper | undefined)[];
 };
 
 export const searchOwnProduct = async ({
-  keyword,
-  page = 1,
-  limit = 10,
   clerkId,
   additionalWhere = [],
+  withDelete,
+  ...paginationParams
 }: SearchProps) => {
-  limit = limit > 20 ? 20 : limit < 10 ? 10 : limit;
-  page = page < 1 ? 1 : page;
-  keyword = keyword?.trim();
-
+  const { page, limit, keyword } = extractPaginationParams(paginationParams);
   const offset = (page - 1) * limit;
 
   const queryBuilder = db
@@ -27,8 +25,8 @@ export const searchOwnProduct = async ({
     .where(
       and(
         eq(ProductTable.clerkId, clerkId),
-        isNull(ProductTable.deletedAt),
-        keyword && keyword.length > 0
+        !withDelete ? isNull(ProductTable.deletedAt) : undefined,
+        keyword
           ? or(
               like(ProductTable.name, `%${keyword}%`),
               like(ProductTable.description, `%${keyword}%`),

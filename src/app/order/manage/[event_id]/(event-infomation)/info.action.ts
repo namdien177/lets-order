@@ -54,9 +54,9 @@ export const updateOrderEventInfo = async (
           eq(OrderEventTable.id, payload.id),
           eq(OrderEventTable.clerkId, userId),
           or(
-            ne(OrderEventTable.eventStatus, ORDER_EVENT_STATUS.COMPLETED),
-            ne(OrderEventTable.eventStatus, ORDER_EVENT_STATUS.LOCKED),
-            ne(OrderEventTable.eventStatus, ORDER_EVENT_STATUS.CANCELLED),
+            ne(OrderEventTable.status, ORDER_EVENT_STATUS.COMPLETED),
+            ne(OrderEventTable.status, ORDER_EVENT_STATUS.LOCKED),
+            ne(OrderEventTable.status, ORDER_EVENT_STATUS.CANCELLED),
           ),
         ),
       );

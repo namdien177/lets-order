@@ -4,7 +4,11 @@ import { type OrderEventPayload } from "@/app/order/create/schema";
 import { db } from "@/server/db";
 import { OrderEventProductTable, OrderEventTable } from "@/server/db/schema";
 import { generateRandomString } from "@/lib/utils";
-import { redirect } from "next/navigation";
+import {
+  BaseResponseType,
+  type ServerErrorResponse,
+  type SuccessResponseData,
+} from "@/lib/types/response.type";
 
 export const createOrderEvent = async (payload: OrderEventPayload) => {
   const createdOrder = await db.transaction(async (tx) => {
@@ -44,10 +48,17 @@ export const createOrderEvent = async (payload: OrderEventPayload) => {
   });
 
   if (!createdOrder) {
-    const params = new URLSearchParams();
-    params.append("error", "Failed to create order");
-    return redirect(`/order/create?${params.toString()}`);
+    return {
+      type: BaseResponseType.serverError,
+      error: "Failed to create order",
+    } as ServerErrorResponse;
   }
 
-  return redirect(`/order`);
+  return {
+    type: BaseResponseType.success,
+    message: "Order created",
+    data: {
+      id: createdOrder.id,
+    },
+  } as SuccessResponseData<{ id: number }>;
 };

@@ -35,7 +35,7 @@ export const markUserCartCompletePayment = async ({
     .select({
       id: OrderCartTable.id,
       eventId: OrderCartTable.eventId,
-      eventStatus: OrderEventTable.eventStatus,
+      eventStatus: OrderEventTable.status,
       eventPaymentStatus: OrderEventTable.paymentStatus,
       paymentStatus: OrderCartTable.paymentStatus,
     })

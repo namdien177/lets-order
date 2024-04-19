@@ -12,7 +12,7 @@ import { Home } from "lucide-react";
 import SearchOrderWithRedirect from "@/components/_page/order/search-order/with-redirect.form";
 import { type NextPageProps } from "@/lib/types/nextjs";
 import { type QueryParamsWithSearch } from "@/lib/types/pagination.types";
-import { extractPaginationParams } from "@/lib/utils";
+import { extractPaginationParams, getEventStatusVerbose } from "@/lib/utils";
 import { queryOrders } from "@/app/order/server";
 import { auth } from "@clerk/nextjs";
 import { redirect } from "next/navigation";
@@ -95,7 +95,7 @@ const Page = async ({ searchParams: rawParams }: PageProps) => {
               <CardDescription>
                 <div className="flex gap-4">
                   <h2>Status:</h2>
-                  <Badge>{order.eventStatus.toLocaleLowerCase()}</Badge>
+                  <Badge>{getEventStatusVerbose(order.status)}</Badge>
                 </div>
                 <div className="flex gap-4">
                   <h2>Created At:</h2>

@@ -1,21 +1,17 @@
 import { ErrorMessage } from "@hookform/error-message";
-import { type FieldErrors, type FieldName } from "react-hook-form";
-import { type FieldValuesFromFieldErrors } from "@hookform/error-message/dist/types";
 import { cn } from "@/lib/utils";
 
-type ErrorFieldProps<TFieldErrors extends FieldErrors> = {
-  errors: TFieldErrors;
-  name: FieldName<FieldValuesFromFieldErrors<TFieldErrors>>;
+type ErrorFieldProps = Omit<
+  Parameters<typeof ErrorMessage>[0],
+  "render" | "as"
+> & {
   className?: string;
 };
 
-const ErrorField = <TFieldErrors extends FieldErrors>({
-  errors,
-  name,
-  className,
-}: ErrorFieldProps<TFieldErrors>) => {
+const ErrorField = ({ errors, name, className, ...props }: ErrorFieldProps) => {
   return (
     <ErrorMessage
+      {...props}
       name={name}
       errors={errors}
       render={({ message }) => (

@@ -11,7 +11,6 @@ import {
   type ServerErrorResponse,
   type SuccessResponseData,
 } from "@/lib/types/response.type";
-import { type ZodIssue } from "zod";
 import { db } from "@/server/db";
 import {
   OrderCartTable,
@@ -21,10 +20,7 @@ import {
 import { auth } from "@clerk/nextjs";
 import { and, eq, inArray } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
-import {
-  ORDER_EVENT_STATUS,
-  type OrderEventStatus,
-} from "@/server/db/constant";
+import { ORDER_EVENT_STATUS } from "@/server/db/constant";
 
 export const updateEventToStatus = async (event: EventStatusPayload) => {
   const validatePayload = eventStatusSchema.safeParse(event);
@@ -33,8 +29,7 @@ export const updateEventToStatus = async (event: EventStatusPayload) => {
     return {
       type: BaseResponseType.invalid,
       error: "Invalid payload",
-      meta: validatePayload.error.errors,
-    } as InvalidErrorResponse<ZodIssue[]>;
+    } as InvalidErrorResponse;
   }
 
   const { userId } = auth();
@@ -47,19 +42,14 @@ export const updateEventToStatus = async (event: EventStatusPayload) => {
 
   const { id, status: newStatus } = validatePayload.data;
 
-  const needClearCarts = (
-    [
-      ORDER_EVENT_STATUS.CANCELLED,
-      ORDER_EVENT_STATUS.DRAFT,
-    ] as OrderEventStatus[]
-  ).includes(newStatus);
+  const needClearCarts = newStatus <= ORDER_EVENT_STATUS.DRAFT;
 
   try {
     const updateSuccess = await db.transaction(async (tx) => {
       const updatedEvent = await tx
         .update(OrderEventTable)
         .set({
-          eventStatus: newStatus,
+          status: newStatus,
         })
         .where(
           and(eq(OrderEventTable.id, id), eq(OrderEventTable.clerkId, userId)),
@@ -114,7 +104,10 @@ export const updateEventToStatus = async (event: EventStatusPayload) => {
     return {
       type: BaseResponseType.success,
       message: "Event status updated successfully.",
-    } as SuccessResponseData<undefined>;
+      data: {
+        id: id,
+      },
+    } as SuccessResponseData<{ id: number }>;
   } catch (e) {
     return {
       type: BaseResponseType.serverError,

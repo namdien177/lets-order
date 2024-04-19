@@ -12,15 +12,8 @@ export const OrderEventTable = createDbTable(
     code: text("code").notNull(),
     clerkId: text("clerk_id").notNull(),
     name: text("name").notNull(),
-    eventStatus: text("eventStatus", {
-      enum: [
-        ORDER_EVENT_STATUS.CANCELLED,
-        ORDER_EVENT_STATUS.DRAFT,
-        ORDER_EVENT_STATUS.ACTIVE,
-        ORDER_EVENT_STATUS.LOCKED,
-        ORDER_EVENT_STATUS.COMPLETED,
-      ],
-    })
+    // refer ORDER_EVENT_STATUS
+    status: integer("status", { mode: "number" })
       .notNull()
       .default(ORDER_EVENT_STATUS.DRAFT),
     paymentAt: integer("payment_at", { mode: "timestamp_ms" }),

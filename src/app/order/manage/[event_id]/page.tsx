@@ -11,12 +11,14 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { Home, Info } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import EditOrderEventInfoForm from "./(event-infomation)/info.form";
 import EventStatusForm from "@/app/order/manage/[event_id]/(event-status)/status.form";
 import OrderList from "@/app/order/manage/[event_id]/(order-list)/order-list";
-import { ORDER_EVENT_STATUS } from "@/server/db/constant";
+import {
+  ORDER_EVENT_STATUS,
+  type OrderEventStatus,
+} from "@/server/db/constant";
 import CartList from "@/app/order/manage/[event_id]/(cart-list)/cart-list";
 
 type PageProps = NextPageProps<{
@@ -39,10 +41,7 @@ const Page = async ({ params: { event_id } }: PageProps) => {
     redirect("/404");
   }
 
-  const billableEvent =
-    eventInfo.eventStatus === ORDER_EVENT_STATUS.ACTIVE ||
-    eventInfo.eventStatus === ORDER_EVENT_STATUS.LOCKED ||
-    eventInfo.eventStatus === ORDER_EVENT_STATUS.COMPLETED;
+  const billableEvent = eventInfo.status >= ORDER_EVENT_STATUS.ACTIVE;
 
   return (
     <div className={"container mx-auto flex flex-col gap-8 p-4 md:p-8"}>
@@ -61,8 +60,15 @@ const Page = async ({ params: { event_id } }: PageProps) => {
 
           <BreadcrumbSeparator />
           <BreadcrumbItem>
+            <BreadcrumbLink href={`/order/show/${eventInfo.id}`}>
+              {eventInfo.name}
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
             <BreadcrumbPage className={"flex items-center gap-2"}>
-              <Badge>Manage</Badge> <span>{eventInfo.name}</span>
+              Manage
             </BreadcrumbPage>
           </BreadcrumbItem>
         </BreadcrumbList>
@@ -81,21 +87,21 @@ const Page = async ({ params: { event_id } }: PageProps) => {
           orderEvent={{
             id: eventInfo.id,
             name: eventInfo.name,
-            status: eventInfo.eventStatus,
+            status: eventInfo.status as OrderEventStatus,
           }}
         />
 
         <EventStatusForm
           orderEvent={{
             id: eventInfo.id,
-            status: eventInfo.eventStatus,
+            status: eventInfo.status,
           }}
         />
 
         {billableEvent && (
           <OrderList
             eventId={eventId}
-            eventStatus={eventInfo.eventStatus}
+            eventStatus={eventInfo.status as OrderEventStatus}
             paymentStatus={eventInfo.paymentStatus}
             paymentAt={eventInfo.paymentAt}
             clerkId={userId}
@@ -103,7 +109,10 @@ const Page = async ({ params: { event_id } }: PageProps) => {
         )}
 
         {billableEvent && (
-          <CartList eventId={eventId} eventStatus={eventInfo.eventStatus} />
+          <CartList
+            eventId={eventId}
+            eventStatus={eventInfo.status as OrderEventStatus}
+          />
         )}
       </div>
     </div>

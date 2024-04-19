@@ -1,16 +1,21 @@
-import { type Optional } from "@/lib/types/helper";
 import { type z } from "zod";
 
 export type QueryParamsWithSearch = {
-  page?: Optional<string>;
-  limit?: Optional<string>;
-  keyword?: Optional<string>;
+  page?: string;
+  limit?: string;
+  keyword?: string;
+};
+
+export type UnSafePaginationParams = {
+  page?: number | string;
+  limit?: number | string;
+  keyword?: string;
 };
 
 export type PaginationParams = {
-  page: Optional<number>;
-  limit: Optional<number>;
-  keyword?: Optional<string>;
+  page?: number;
+  limit?: number;
+  keyword?: string;
 };
 
 export type QueryParamsWithSearchZodParse = z.SafeParseReturnType<

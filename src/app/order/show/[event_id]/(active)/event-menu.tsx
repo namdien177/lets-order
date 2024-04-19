@@ -12,7 +12,6 @@ import {
   type CartItemPayload,
   createCartItemSchema,
   type CreateCartPayload,
-  type ShowingCart,
 } from "@/app/order/show/[event_id]/schema";
 import EventMenuStatus from "@/app/order/show/[event_id]/(active)/event-menu.status";
 import {
@@ -21,18 +20,20 @@ import {
 } from "@/app/order/show/[event_id]/(active)/event-menu.action";
 import { BaseResponseType } from "@/lib/types/response.type";
 import { toast } from "sonner";
+import { type QueryUserCartReturn } from "@/app/order/show/[event_id]/query";
+import { type Nullable } from "@/lib/types/helper";
 
 type Props = {
   clerkId: string;
   eventId: number;
-  cart?: ShowingCart;
+  cart: Nullable<QueryUserCartReturn>;
   onUpdated?: () => void;
 };
 
 const EventMenu = ({ eventId, cart, onUpdated }: Props) => {
   const [searchKey, setSearchKey] = useState("");
   const { data } = useQuery({
-    queryKey: ["produc", searchKey, eventId],
+    queryKey: ["product", searchKey, eventId],
     queryFn: async () => getAllProductsInEvent({ id: eventId }, searchKey),
     enabled: searchKey.trim().length >= 3 || searchKey.trim().length === 0,
   });

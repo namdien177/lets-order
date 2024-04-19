@@ -1,7 +1,6 @@
 import { type NextPageProps } from "@/lib/types/nextjs";
-import { db } from "@/server/db";
 import { redirect } from "next/navigation";
-import { Home, Settings, Share2 } from "lucide-react";
+import { Home, Info, Settings, Share2 } from "lucide-react";
 import EventBadgeStatus from "@/app/order/show/[event_id]/event-badge-status";
 import {
   Breadcrumb,
@@ -13,14 +12,17 @@ import {
 } from "@/components/ui/breadcrumb";
 import EventMenu from "@/app/order/show/[event_id]/(active)/event-menu";
 import { auth } from "@clerk/nextjs";
-import { type ShowingCart } from "@/app/order/show/[event_id]/schema";
 import EventShareBtn from "@/app/order/show/[event_id]/event-share.btn";
 import { env } from "@/env";
 import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button";
 import { ORDER_EVENT_STATUS } from "@/server/db/constant";
 import EventPaymentInfo from "@/app/order/show/[event_id]/(completed)/event-payment";
-import { type Optional } from "@/lib/types/helper";
+import {
+  queryEventWithProducts,
+  queryUserCart,
+} from "@/app/order/show/[event_id]/query";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 type PageProps = NextPageProps<{
   event_id: string;
@@ -36,53 +38,17 @@ const Page = async ({ params: { event_id } }: PageProps) => {
     redirect("/sign-in");
   }
 
-  const orderEvent = await db.query.OrderEventTable.findFirst({
-    where: (table, { eq }) => eq(table.id, eventId),
-    with: {
-      carts: {
-        where: (table, { eq }) => eq(table.clerkId, userId),
-        with: {
-          itemsInCart: {
-            with: {
-              registeredProduct: {
-                with: {
-                  product: true,
-                },
-              },
-            },
-          },
-        },
-      },
-    },
-  });
+  const orderEvent = await queryEventWithProducts(eventId, userId);
 
   if (!orderEvent) {
     redirect("/404");
   }
 
   const isOwner = orderEvent.clerkId === userId;
-  const isOrderAble = orderEvent.eventStatus === ORDER_EVENT_STATUS.ACTIVE;
-  const isInPaymentState =
-    orderEvent.eventStatus === ORDER_EVENT_STATUS.COMPLETED ||
-    orderEvent.eventStatus === ORDER_EVENT_STATUS.LOCKED;
+  const isOrderAble = orderEvent.status === ORDER_EVENT_STATUS.ACTIVE;
+  const isInPaymentState = orderEvent.status >= ORDER_EVENT_STATUS.LOCKED;
 
-  const userCart = orderEvent.carts.at(0);
-  let cart: Optional<ShowingCart>;
-  if (userCart) {
-    cart = {
-      id: userCart.id,
-      confirmedAt: userCart.paymentConfirmationAt,
-      paymentAt: userCart.paymentAt,
-      paymentStatus: userCart.paymentStatus,
-      items: userCart.itemsInCart.map((item) => ({
-        id: item.registeredProduct.productId,
-        eventProductId: item.orderEventProductId,
-        name: item.registeredProduct.product.name,
-        description: item.registeredProduct.product.description,
-        price: item.registeredProduct.product.price,
-      })),
-    };
-  }
+  const userCart = await queryUserCart(eventId, userId);
 
   return (
     <div className={"container mx-auto p-4 md:p-8"}>
@@ -106,7 +72,7 @@ const Page = async ({ params: { event_id } }: PageProps) => {
         </BreadcrumbList>
       </Breadcrumb>
 
-      <div className="mx-auto flex w-full flex-col gap-8 py-8 md:max-w-[500px]">
+      <div className="mx-auto flex w-full flex-col gap-8 py-8 md:max-w-[800px]">
         <div
           className={"flex flex-col items-center justify-center md:items-start"}
         >
@@ -116,7 +82,7 @@ const Page = async ({ params: { event_id } }: PageProps) => {
           <h1 className={"text-4xl font-bold"}>{orderEvent.name}</h1>
         </div>
 
-        <div className="flex items-center justify-center gap-4 md:justify-start">
+        <div className="flex items-center justify-center gap-4 overflow-x-auto md:justify-start">
           <div className={"flex flex-1 items-center gap-4"}>
             <EventBadgeStatus data={orderEvent} className={"h-9 px-4"} />
 
@@ -135,28 +101,48 @@ const Page = async ({ params: { event_id } }: PageProps) => {
           </div>
 
           {isOwner && (
-            <Link
-              href={`/order/manage/${orderEvent.id}`}
-              className={buttonVariants({
-                variant: "outline",
-                className: "gap-2",
-                size: "sm",
-              })}
-            >
-              <Settings size={16} />
-              <span>Manage</span>
-            </Link>
+            <>
+              <hr className={"h-6 border"} />
+              <Link
+                href={`/order/manage/${orderEvent.id}`}
+                className={buttonVariants({
+                  variant: "outline",
+                  className: "gap-2",
+                  size: "sm",
+                })}
+              >
+                <Settings size={16} />
+                <span>Manage</span>
+              </Link>
+            </>
           )}
         </div>
 
         <hr />
 
-        {isOrderAble && (
-          <EventMenu clerkId={userId} eventId={orderEvent.id} cart={cart} />
+        {orderEvent.status === ORDER_EVENT_STATUS.DRAFT && (
+          <Alert>
+            <Info size={16} />
+            <AlertTitle>Your event is in drafting stage</AlertTitle>
+            <AlertDescription>
+              Events in drafting stage won&apos;t be displayed to public. Go to{" "}
+              <Link
+                className={"inline text-primary underline"}
+                href={`/order/manage/${orderEvent.id}`}
+              >
+                manage page
+              </Link>{" "}
+              to publish your event.
+            </AlertDescription>
+          </Alert>
         )}
 
-        {isInPaymentState && cart && (
-          <EventPaymentInfo event={orderEvent} cart={cart} />
+        {isOrderAble && (
+          <EventMenu clerkId={userId} eventId={orderEvent.id} cart={userCart} />
+        )}
+
+        {isInPaymentState && userCart && (
+          <EventPaymentInfo event={orderEvent} cart={userCart} />
         )}
       </div>
     </div>
