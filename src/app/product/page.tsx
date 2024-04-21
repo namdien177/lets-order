@@ -87,9 +87,7 @@ const Page = async ({ searchParams: rawParams }: PageProps) => {
         {data.map((product) => (
           <Card key={product.id} className="w-full sm:w-1/2 sm:max-w-80">
             <CardHeader className="pb-3">
-              <CardTitle>
-                #{product.id} - {product.name}
-              </CardTitle>
+              <CardTitle>{product.name}</CardTitle>
               <CardDescription className={"flex flex-col gap-4"}>
                 <span>{product.description ?? "N/A"}</span>
               </CardDescription>
