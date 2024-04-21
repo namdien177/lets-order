@@ -11,6 +11,8 @@ export const OrderCartTable = createDbTable(
     id: integer("id", { mode: "number" }).primaryKey({ autoIncrement: true }),
     clerkId: text("clerk_id").notNull(),
     eventId: integer("event_id", { mode: "number" }).notNull(),
+    clerkName: text("clerk_name"),
+    clerkEmail: text("clerk_email"),
     note: text("note"),
     paymentConfirmationAt: integer("payment_confirmation_at", {
       mode: "timestamp_ms",

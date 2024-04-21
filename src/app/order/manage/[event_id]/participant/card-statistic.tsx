@@ -1,27 +1,17 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { type MouseEventHandler, type PropsWithChildren } from "react";
-import { cn, isNullish } from "@/lib/utils";
-import { Badge } from "@/components/ui/badge";
+import { type PropsWithChildren } from "react";
+import { cn } from "@/lib/utils";
 
 type Props = {
   label: string;
   icon?: React.ReactNode;
-  isSelected?: boolean;
-  onClick?: MouseEventHandler<HTMLDivElement>;
 };
 
-const CardStatistic = ({
-  label,
-  icon,
-  children,
-  isSelected,
-}: PropsWithChildren<Props>) => {
+const CardStatistic = ({ label, icon, children }: PropsWithChildren<Props>) => {
   return (
     <Card
       className={cn(
-        "relative w-[70vw] select-none overflow-visible sm:w-[50vw] md:w-full md:min-w-56 md:max-w-60",
-        isSelected && "border-primary",
-        !isNullish(isSelected) && "cursor-pointer",
+        "relative w-[70vw] min-w-56 select-none overflow-visible sm:w-[60vw] md:w-full md:max-w-60",
       )}
     >
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -29,15 +19,6 @@ const CardStatistic = ({
         {icon}
       </CardHeader>
       <CardContent>{children}</CardContent>
-      {isSelected && (
-        <Badge
-          className={
-            "absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 transform"
-          }
-        >
-          current
-        </Badge>
-      )}
     </Card>
   );
 };

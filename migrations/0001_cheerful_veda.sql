@@ -1,1 +1,0 @@
-ALTER TABLE `lets-order_order_carts` ADD `payment_confirmation_at` integer;

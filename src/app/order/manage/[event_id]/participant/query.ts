@@ -1,5 +1,7 @@
+"use server";
+
 import { db } from "@/server/db";
-import { and, count, eq, sql, sum } from "drizzle-orm";
+import { and, count, eq, like, or, sql, sum } from "drizzle-orm";
 import {
   OrderCartTable,
   OrderEventProductTable,
@@ -11,6 +13,8 @@ import { auth } from "@clerk/nextjs";
 import { assertAsNonNullish } from "@/lib/types/helper";
 import { ORDER_PAYMENT_STATUS } from "@/server/db/constant";
 import { unflatten } from "flat";
+import { type PaginationParams } from "@/lib/types/pagination.types";
+import { extractPaginationParams } from "@/lib/utils";
 
 type EventParticipantStatsReturn = {
   id: number;
@@ -53,7 +57,6 @@ export const getEventParticipantStats = async (eventId: number) => {
       ProductTable,
       eq(OrderEventProductTable.productId, ProductTable.id),
     )
-    .where((table) => eq(table.eventId, eventId))
     .groupBy((table) => table.cartId)
     .as("cartInformation$");
 
@@ -66,6 +69,7 @@ export const getEventParticipantStats = async (eventId: number) => {
         .as("totalPrice"),
     })
     .from(cartInformation$)
+    .groupBy((table) => table.eventId)
     .as("totalParticipants$");
 
   const cartPaymentStatus$ = db
@@ -113,4 +117,58 @@ export const getEventParticipantStats = async (eventId: number) => {
         eventInfo,
       )
     : null;
+};
+
+type GetUsersInEventProps = {
+  query?: PaginationParams;
+  eventId: number;
+};
+
+const getUsersInEvent = async ({ query, eventId }: GetUsersInEventProps) => {
+  const { userId } = auth();
+  assertAsNonNullish(userId);
+  const { page, limit, keyword } = extractPaginationParams(query);
+
+  const userWithCartInfo$ = db
+    .select({
+      cartId: OrderCartTable.id,
+      eventId: OrderCartTable.eventId,
+      clerkId: OrderCartTable.clerkId,
+      clerkName: OrderCartTable.clerkName,
+      clerkEmail: OrderCartTable.clerkEmail,
+      productId: ProductTable.id,
+      productName: ProductTable.name,
+      productDescription: ProductTable.description,
+      productPrice: ProductTable.price,
+    })
+    .from(OrderCartTable)
+    .innerJoin(OrderItemTable, eq(OrderCartTable.id, OrderItemTable.cartId))
+    .innerJoin(
+      OrderEventProductTable,
+      eq(OrderItemTable.orderEventProductId, OrderEventProductTable.id),
+    )
+    .innerJoin(
+      ProductTable,
+      eq(OrderEventProductTable.productId, ProductTable.id),
+    )
+    .as("userWithCartInfo$");
+
+  const userQuery$ = db
+    .select()
+    .from(userWithCartInfo$)
+    .where((table) =>
+      and(
+        eq(table.eventId, eventId),
+        eq(table.clerkId, userId),
+        keyword
+          ? or(
+              like(table.clerkName, `%${keyword}%`),
+              like(table.clerkEmail, `%${keyword}%`),
+              like(table.productName, `%${keyword}%`),
+              like(table.productDescription, `%${keyword}%`),
+            )
+          : undefined,
+      ),
+    )
+    .$dynamic();
 };

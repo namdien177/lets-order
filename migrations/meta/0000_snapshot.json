@@ -1,7 +1,7 @@
 {
   "version": "5",
   "dialect": "sqlite",
-  "id": "a4c7e94b-b542-4a38-9e84-dfe6e6fb207d",
+  "id": "72eb60ac-d21a-4dd0-9574-ff0bd96f2ea2",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "lets-order_order_carts": {
@@ -28,9 +28,30 @@
           "notNull": true,
           "autoincrement": false
         },
+        "clerk_name": {
+          "name": "clerk_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "clerk_email": {
+          "name": "clerk_email",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
         "note": {
           "name": "note",
           "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "payment_confirmation_at": {
+          "name": "payment_confirmation_at",
+          "type": "integer",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
@@ -111,13 +132,13 @@
           "notNull": true,
           "autoincrement": false
         },
-        "eventStatus": {
-          "name": "eventStatus",
-          "type": "text",
+        "status": {
+          "name": "status",
+          "type": "integer",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
-          "default": "'DRAFT'"
+          "default": 0
         },
         "payment_at": {
           "name": "payment_at",

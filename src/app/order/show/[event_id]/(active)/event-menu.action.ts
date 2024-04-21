@@ -1,9 +1,8 @@
 "use server";
 
 import { type CreateCartPayload } from "@/app/order/show/[event_id]/schema";
-import { auth } from "@clerk/nextjs/server";
+import { currentUser } from "@clerk/nextjs/server";
 import {
-  type AuthErrorResponse,
   BaseResponseType,
   type InvalidErrorResponse,
   type NotFoundErrorResponse,
@@ -23,14 +22,33 @@ import {
 import { and, asc, eq, inArray, like } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { isNullish } from "@/lib/utils";
+import { assertAsNonNullish, type Nullable } from "@/lib/types/helper";
+import { type User } from "@clerk/backend";
 
-const createCart = async (clerkId: string, orderPayload: CreateCartPayload) => {
+const createCart = async (clerkUser: User, orderPayload: CreateCartPayload) => {
+  let clerkName: Nullable<string> =
+    `${clerkUser.firstName ?? ""} ${clerkUser.lastName ?? ""}`.trim();
+  if (clerkName.length === 0) {
+    clerkName = null;
+    if (clerkUser.username) {
+      clerkName = clerkUser.username;
+    }
+  }
+  const clerkEmail =
+    (clerkUser.primaryEmailAddressId
+      ? clerkUser.emailAddresses.find(
+          (e) => e.id === clerkUser.primaryEmailAddressId,
+        )?.emailAddress
+      : null) ?? null;
+
   const cart = await db.transaction(async (ctx) => {
     const [inserted] = await ctx
       .insert(OrderCartTable)
       .values({
         eventId: orderPayload.eventId,
-        clerkId,
+        clerkId: clerkUser.id,
+        clerkName,
+        clerkEmail,
       })
       .returning();
 
@@ -185,14 +203,8 @@ const upsertCart = async (
 };
 
 export const PlacingOrderAction = async (orderPayload: CreateCartPayload) => {
-  const { userId } = auth();
-
-  if (!userId) {
-    return {
-      type: BaseResponseType.unAuthenticated,
-      error: "User is not authenticated",
-    } as AuthErrorResponse;
-  }
+  const user = await currentUser();
+  assertAsNonNullish(user);
 
   const existingCartId = orderPayload.cartId;
 
@@ -205,7 +217,7 @@ export const PlacingOrderAction = async (orderPayload: CreateCartPayload) => {
     }
 
     try {
-      const data = await createCart(userId, orderPayload);
+      const data = await createCart(user, orderPayload);
       revalidatePath(`/order/show/${orderPayload.eventId}`);
       return {
         type: BaseResponseType.success,
@@ -213,13 +225,17 @@ export const PlacingOrderAction = async (orderPayload: CreateCartPayload) => {
         message: "Cart created successfully",
       } as SuccessResponseData<OrderCart>;
     } catch (e) {
-      return e as ServerErrorResponse;
+      console.error(e);
+      return {
+        type: BaseResponseType.serverError,
+        error: "Failed to create cart",
+      } as ServerErrorResponse;
     }
   }
 
   const cartData = await db.query.OrderCartTable.findFirst({
     where: (table, { and, eq }) =>
-      and(eq(table.id, existingCartId), eq(table.clerkId, userId)),
+      and(eq(table.id, existingCartId), eq(table.clerkId, user.id)),
     with: {
       itemsInCart: {
         with: {
