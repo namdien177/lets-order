@@ -1,4 +1,6 @@
-import { createEnv } from "@t3-oss/env-nextjs";
+// TODO: change back to original package when it gets fixed
+// import { createEnv } from "@t3-oss/env-nextjs";
+import { createEnv } from "@t3-oss/env-core";
 import { z } from "zod";
 
 export const env = createEnv({
@@ -21,7 +23,7 @@ export const env = createEnv({
     CLERK_SECRET_KEY: z.string(),
     CLIENT_HOST: z.string().url(),
   },
-
+  clientPrefix: "NEXT_PUBLIC_",
   /**
    * Specify your client-side environment variables schema here. This way you can ensure the app
    * isn't built with invalid env vars. To expose them to the client, prefix them with

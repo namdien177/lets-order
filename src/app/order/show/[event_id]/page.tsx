@@ -29,7 +29,7 @@ type PageProps = NextPageProps<{
 }>;
 
 const Page = async ({ params: { event_id } }: PageProps) => {
-  const clientHost = env.CLIENT_HOST as string;
+  const clientHost = env.CLIENT_HOST;
 
   const { userId } = auth();
   const eventId = parseInt(event_id);
