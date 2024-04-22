@@ -1,4 +1,4 @@
-import { KyInstance } from "ky";
+import { type KyInstance } from "ky";
 
 const withAuthKy = (ky: KyInstance, token: string) => {
   return ky.extend({

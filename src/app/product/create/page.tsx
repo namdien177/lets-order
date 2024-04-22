@@ -1,4 +1,4 @@
-import { auth } from "@clerk/nextjs";
+import { auth } from "@clerk/nextjs/server";
 import CreateProductForm from "@/app/product/create/form";
 import { redirect } from "next/navigation";
 

@@ -14,7 +14,7 @@ import { type NextPageProps } from "@/lib/types/nextjs";
 import { type QueryParamsWithSearch } from "@/lib/types/pagination.types";
 import { extractPaginationParams, getEventStatusVerbose } from "@/lib/utils";
 import { queryOrders } from "@/app/order/server";
-import { auth } from "@clerk/nextjs";
+import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import {

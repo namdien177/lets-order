@@ -1,7 +1,7 @@
 import { type QueryParamsWithSearch } from "@/lib/types/pagination.types";
 import { type NextPageProps } from "@/lib/types/nextjs";
 import { cn, extractPaginationParams } from "@/lib/utils";
-import { auth } from "@clerk/nextjs";
+import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import {
   Breadcrumb,

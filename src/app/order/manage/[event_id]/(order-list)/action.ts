@@ -7,7 +7,7 @@ import {
   type ServerErrorResponse,
   type SuccessResponseData,
 } from "@/lib/types/response.type";
-import { auth } from "@clerk/nextjs";
+import { auth } from "@clerk/nextjs/server";
 import { db } from "@/server/db";
 import { ORDER_EVENT_STATUS, ORDER_PAYMENT_STATUS } from "@/server/db/constant";
 import { OrderEventTable } from "@/server/db/schema";

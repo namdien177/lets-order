@@ -1,7 +1,7 @@
 "use server";
 
 import { type CreateCartPayload } from "@/app/order/show/[event_id]/schema";
-import { auth } from "@clerk/nextjs";
+import { auth } from "@clerk/nextjs/server";
 import {
   type AuthErrorResponse,
   BaseResponseType,

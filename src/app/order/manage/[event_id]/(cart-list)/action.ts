@@ -1,6 +1,6 @@
 "use server";
 
-import { auth } from "@clerk/nextjs";
+import { auth } from "@clerk/nextjs/server";
 import { assertAsType } from "@/lib/types/helper";
 import { db } from "@/server/db";
 import {

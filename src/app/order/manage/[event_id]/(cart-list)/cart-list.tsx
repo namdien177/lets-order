@@ -1,7 +1,7 @@
 import { queryItemsFromCarts } from "@/app/order/manage/[event_id]/query";
 import { displayAsParticipantItems } from "@/app/order/manage/[event_id]/mapper";
 import { Badge } from "@/components/ui/badge";
-import { clerkClient } from "@clerk/nextjs";
+import { clerkClient } from "@clerk/nextjs/server";
 import {
   Table,
   TableBody,
@@ -33,10 +33,11 @@ const CartList = async ({ eventId, eventStatus }: CartListProps) => {
   const itemWithAmount = await queryItemsFromCarts(eventId);
   const clerkUsers = await clerkClient.users.getUserList({
     userId: itemWithAmount.map((item) => item.clerkId),
+    limit: itemWithAmount.length,
   });
   const { data: displayList } = displayAsParticipantItems(
     itemWithAmount,
-    clerkUsers,
+    clerkUsers.data,
   );
 
   return (

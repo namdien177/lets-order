@@ -14,7 +14,7 @@
     "start": "next start"
   },
   "dependencies": {
-    "@clerk/nextjs": "4.29.5",
+    "@clerk/nextjs": "5.0.1",
     "@hookform/error-message": "^2.0.1",
     "@hookform/resolvers": "^3.3.4",
     "@libsql/client": "^0.6.0",

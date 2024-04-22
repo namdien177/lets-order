@@ -1,7 +1,7 @@
 "use server";
 
 import { type CreateProductPayload } from "@/app/product/create/schema";
-import { auth } from "@clerk/nextjs";
+import { auth } from "@clerk/nextjs/server";
 import {
   type AuthErrorResponse,
   BaseResponseType,

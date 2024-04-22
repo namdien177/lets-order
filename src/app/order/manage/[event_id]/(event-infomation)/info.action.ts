@@ -4,7 +4,7 @@ import {
   type EditEventInfoPayload,
   editEventInfoSchema,
 } from "@/app/order/manage/[event_id]/(event-infomation)/info.schema";
-import { auth } from "@clerk/nextjs";
+import { auth } from "@clerk/nextjs/server";
 import {
   type AuthErrorResponse,
   BaseResponseType,

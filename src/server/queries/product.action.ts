@@ -2,7 +2,7 @@
 
 import { type UnSafePaginationParams } from "@/lib/types/pagination.types";
 import { type Product } from "@/server/db/schema";
-import { auth } from "@clerk/nextjs";
+import { auth } from "@clerk/nextjs/server";
 import {
   type AuthErrorResponse,
   BaseResponseType,

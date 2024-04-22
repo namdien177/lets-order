@@ -17,7 +17,7 @@ import {
   OrderEventTable,
   OrderItemTable,
 } from "@/server/db/schema";
-import { auth } from "@clerk/nextjs";
+import { auth } from "@clerk/nextjs/server";
 import { and, eq, inArray } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { ORDER_EVENT_STATUS } from "@/server/db/constant";

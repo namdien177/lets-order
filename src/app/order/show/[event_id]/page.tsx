@@ -11,7 +11,7 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import EventMenu from "@/app/order/show/[event_id]/(active)/event-menu";
-import { auth } from "@clerk/nextjs";
+import { auth } from "@clerk/nextjs/server";
 import EventShareBtn from "@/app/order/show/[event_id]/event-share.btn";
 import { env } from "@/env";
 import Link from "next/link";
@@ -29,7 +29,7 @@ type PageProps = NextPageProps<{
 }>;
 
 const Page = async ({ params: { event_id } }: PageProps) => {
-  const clientHost = env.CLIENT_HOST;
+  const clientHost = env.CLIENT_HOST as string;
 
   const { userId } = auth();
   const eventId = parseInt(event_id);
