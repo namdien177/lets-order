@@ -10,8 +10,11 @@ import {
   ProductTable,
 } from "@/server/db/schema";
 import { auth } from "@clerk/nextjs";
-import { assertAsNonNullish } from "@/lib/types/helper";
-import { ORDER_PAYMENT_STATUS } from "@/server/db/constant";
+import { assertAsNonNullish, type Nullable } from "@/lib/types/helper";
+import {
+  ORDER_PAYMENT_STATUS,
+  type OrderPaymentStatus,
+} from "@/server/db/constant";
 import { unflatten } from "flat";
 import { type PaginationParams } from "@/lib/types/pagination.types";
 import { extractPaginationParams } from "@/lib/utils";
@@ -102,11 +105,11 @@ export const getEventParticipantStats = async (eventId: number) => {
       "statistics.pendingParticipants": cartPaymentStatus$.pendingCount,
     })
     .from(OrderEventTable)
-    .innerJoin(
+    .leftJoin(
       totalParticipants$,
       eq(OrderEventTable.id, totalParticipants$.eventId),
     )
-    .innerJoin(
+    .leftJoin(
       cartPaymentStatus$,
       eq(OrderEventTable.id, cartPaymentStatus$.eventId),
     )
@@ -124,7 +127,27 @@ type GetUsersInEventProps = {
   eventId: number;
 };
 
-const getUsersInEvent = async ({ query, eventId }: GetUsersInEventProps) => {
+type UserCartInEvent = {
+  id: number;
+  clerkId: string;
+  clerkName: Nullable<string>;
+  clerkEmail: Nullable<string>;
+  paymentStatus: OrderPaymentStatus;
+  paymentAt: Nullable<Date>;
+  paymentConfirmationAt: Nullable<Date>;
+  item: Array<{
+    id: number;
+    name: string;
+    description: Nullable<string>;
+    price: number;
+    amount: number;
+  }>;
+};
+
+export const getUsersInEvent = async ({
+  query,
+  eventId,
+}: GetUsersInEventProps) => {
   const { userId } = auth();
   assertAsNonNullish(userId);
   const { page, limit, keyword } = extractPaginationParams(query);
@@ -151,24 +174,90 @@ const getUsersInEvent = async ({ query, eventId }: GetUsersInEventProps) => {
       ProductTable,
       eq(OrderEventProductTable.productId, ProductTable.id),
     )
+    .where((table) => eq(table.eventId, eventId))
     .as("userWithCartInfo$");
 
   const userQuery$ = db
-    .select()
+    .select({
+      id: userWithCartInfo$.cartId,
+      clerkId: OrderCartTable.clerkId,
+      clerkName: OrderCartTable.clerkName,
+      clerkEmail: OrderCartTable.clerkEmail,
+      paymentStatus: OrderCartTable.paymentStatus,
+      paymentAt: OrderCartTable.paymentAt,
+      paymentConfirmationAt: OrderCartTable.paymentConfirmationAt,
+      "item.id": ProductTable.id,
+      "item.name": ProductTable.name,
+      "item.description": ProductTable.description,
+      "item.price": ProductTable.price,
+      "item.amount": OrderItemTable.amount,
+    })
     .from(userWithCartInfo$)
-    .where((table) =>
+    .innerJoin(OrderCartTable, eq(OrderCartTable.id, userWithCartInfo$.cartId))
+    .leftJoin(OrderItemTable, eq(OrderItemTable.cartId, OrderCartTable.id))
+    .innerJoin(
+      OrderEventProductTable,
+      eq(OrderItemTable.orderEventProductId, OrderEventProductTable.id),
+    )
+    .innerJoin(
+      ProductTable,
+      eq(OrderEventProductTable.productId, ProductTable.id),
+    )
+    .where(() =>
       and(
-        eq(table.eventId, eventId),
-        eq(table.clerkId, userId),
         keyword
           ? or(
-              like(table.clerkName, `%${keyword}%`),
-              like(table.clerkEmail, `%${keyword}%`),
-              like(table.productName, `%${keyword}%`),
-              like(table.productDescription, `%${keyword}%`),
+              like(userWithCartInfo$.clerkName, `%${keyword}%`),
+              like(userWithCartInfo$.clerkEmail, `%${keyword}%`),
+              like(userWithCartInfo$.productName, `%${keyword}%`),
+              like(userWithCartInfo$.productDescription, `%${keyword}%`),
             )
           : undefined,
       ),
     )
     .$dynamic();
+
+  const [{ total } = { total: 0 }] = await db
+    .select({ total: count() })
+    .from(userWithCartInfo$);
+
+  const rawData = await userQuery$;
+  const data = new Map<number, UserCartInEvent>();
+
+  rawData.forEach((row) => {
+    const existData = data.get(row.id);
+    if (existData) {
+      existData.item.push({
+        id: row["item.id"],
+        name: row["item.name"],
+        description: row["item.description"],
+        price: row["item.price"],
+        amount: row["item.amount"],
+      });
+    } else {
+      data.set(row.id, {
+        id: row.id,
+        clerkId: row.clerkId,
+        clerkName: row.clerkName,
+        clerkEmail: row.clerkEmail,
+        paymentStatus: row.paymentStatus,
+        paymentAt: row.paymentAt,
+        paymentConfirmationAt: row.paymentConfirmationAt,
+        item: [
+          {
+            id: row.item.id,
+            name: row.item.name,
+            description: row.item.description,
+            price: row.item.price,
+            amount: row.item.amount,
+          },
+        ],
+      });
+    }
+  });
+
+  return {
+    data: await userQuery$,
+    total,
+  };
 };

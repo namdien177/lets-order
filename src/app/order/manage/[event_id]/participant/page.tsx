@@ -3,10 +3,12 @@ import { auth } from "@clerk/nextjs";
 import { assertAsNonNullish } from "@/lib/types/helper";
 import { redirect } from "next/navigation";
 import { AlertCircle, CheckCircle, DollarSign, Users } from "lucide-react";
-import { getEventParticipantStats } from "@/app/order/manage/[event_id]/participant/query";
+import {
+  getEventParticipantStats,
+  getUsersInEvent,
+} from "@/app/order/manage/[event_id]/participant/query";
 import { formatAsMoney } from "@/lib/utils";
 import CardStatistic from "@/app/order/manage/[event_id]/participant/card-statistic";
-import Link from "next/link";
 
 type PageProps = NextPageProps<
   {
@@ -29,9 +31,15 @@ const Page = async ({
   const eventInfo = await getEventParticipantStats(eventId);
   console.log(eventInfo);
 
+  const data = await getUsersInEvent({
+    eventId,
+  });
+
   if (!eventInfo) {
     redirect("/404");
   }
+
+  console.log(data);
 
   return (
     <div className={"flex flex-col"}>
@@ -46,7 +54,7 @@ const Page = async ({
           icon={<DollarSign className="h-4 w-4 text-muted-foreground" />}
         >
           <div className="text-2xl font-bold">
-            {formatAsMoney(eventInfo.statistics.totalPrice)}
+            {formatAsMoney(eventInfo.statistics.totalPrice ?? 0)}
           </div>
         </CardStatistic>
 
@@ -55,7 +63,7 @@ const Page = async ({
           icon={<Users className="h-4 w-4 text-muted-foreground" />}
         >
           <div className="text-2xl font-bold">
-            {eventInfo.statistics.totalParticipants}
+            {eventInfo.statistics.totalParticipants ?? 0}
           </div>
         </CardStatistic>
 
@@ -64,7 +72,7 @@ const Page = async ({
           icon={<CheckCircle className="h-4 w-4 text-muted-foreground" />}
         >
           <div className="text-2xl font-bold">
-            {eventInfo.statistics.paidParticipants}
+            {eventInfo.statistics.paidParticipants ?? 0}
           </div>
         </CardStatistic>
 
@@ -73,7 +81,7 @@ const Page = async ({
           icon={<AlertCircle className="h-4 w-4 text-muted-foreground" />}
         >
           <div className="text-2xl font-bold">
-            {eventInfo.statistics.pendingParticipants}
+            {eventInfo.statistics.pendingParticipants ?? 0}
           </div>
         </CardStatistic>
       </div>
