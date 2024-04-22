@@ -1,9 +1,10 @@
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { type UnSafePaginationParams } from "@/lib/types/pagination.types";
-import { type Nullish, type Optional } from "@/lib/types/helper";
+import { type Nullable, type Nullish, type Optional } from "@/lib/types/helper";
 import { z } from "zod";
 import { ORDER_EVENT_STATUS } from "@/server/db/constant";
+import { type User } from "@clerk/backend";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -47,6 +48,25 @@ export function getEventStatusVerbose(status: number) {
       return "unknown";
   }
 }
+
+export const getClerkPublicData = (clerkUser: User) => {
+  let clerkName: Nullable<string> =
+    `${clerkUser.firstName ?? ""} ${clerkUser.lastName ?? ""}`.trim();
+  if (clerkName.length === 0) {
+    clerkName = null;
+    if (clerkUser.username) {
+      clerkName = clerkUser.username;
+    }
+  }
+  const clerkEmail: Nullable<string> =
+    (clerkUser.primaryEmailAddressId
+      ? clerkUser.emailAddresses.find(
+          (e) => e.id === clerkUser.primaryEmailAddressId,
+        )?.emailAddress
+      : null) ?? null;
+
+  return { clerkName, clerkEmail };
+};
 
 export function extractPaginationParams(
   raw?: UnSafePaginationParams,

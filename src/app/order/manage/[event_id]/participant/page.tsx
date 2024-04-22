@@ -1,45 +1,25 @@
 import type { NextPageProps } from "@/lib/types/nextjs";
-import { auth } from "@clerk/nextjs";
-import { assertAsNonNullish } from "@/lib/types/helper";
 import { redirect } from "next/navigation";
 import { AlertCircle, CheckCircle, DollarSign, Users } from "lucide-react";
-import {
-  getEventParticipantStats,
-  getUsersInEvent,
-} from "@/app/order/manage/[event_id]/participant/query";
+import { getEventParticipantStats } from "@/app/order/manage/[event_id]/participant/query";
 import { formatAsMoney } from "@/lib/utils";
 import CardStatistic from "@/app/order/manage/[event_id]/participant/card-statistic";
+import TableParticipant from "@/app/order/manage/[event_id]/participant/(table-participant)";
 
-type PageProps = NextPageProps<
-  {
-    event_id: string;
-  },
-  {
-    filter?: string;
-  }
->;
+type PageProps = NextPageProps<{
+  event_id: string;
+}>;
 
-const Page = async ({
-  params: { event_id },
-  searchParams: { filter },
-}: PageProps) => {
-  const { userId } = auth();
-  assertAsNonNullish(userId);
+const Page = async ({ params: { event_id } }: PageProps) => {
   const eventId = parseInt(event_id);
-  const baseURL = `/order/manage/${eventId}/participant`;
 
   const eventInfo = await getEventParticipantStats(eventId);
-  console.log(eventInfo);
-
-  const data = await getUsersInEvent({
-    eventId,
-  });
 
   if (!eventInfo) {
     redirect("/404");
   }
 
-  console.log(data);
+  // console.log(JSON.stringify(data, null, 2));
 
   return (
     <div className={"flex flex-col"}>
@@ -85,6 +65,10 @@ const Page = async ({
           </div>
         </CardStatistic>
       </div>
+
+      <hr className={"my-4"} />
+
+      <TableParticipant eventId={eventId} />
     </div>
   );
 };

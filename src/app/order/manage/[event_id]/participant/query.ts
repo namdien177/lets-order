@@ -9,7 +9,7 @@ import {
   OrderItemTable,
   ProductTable,
 } from "@/server/db/schema";
-import { auth } from "@clerk/nextjs";
+import { auth, clerkClient } from "@clerk/nextjs/server";
 import { assertAsNonNullish, type Nullable } from "@/lib/types/helper";
 import {
   ORDER_PAYMENT_STATUS,
@@ -17,7 +17,12 @@ import {
 } from "@/server/db/constant";
 import { unflatten } from "flat";
 import { type PaginationParams } from "@/lib/types/pagination.types";
-import { extractPaginationParams } from "@/lib/utils";
+import {
+  extractPaginationParams,
+  getClerkPublicData,
+  isNullish,
+} from "@/lib/utils";
+import { type ResultSet } from "@libsql/client";
 
 type EventParticipantStatsReturn = {
   id: number;
@@ -66,13 +71,15 @@ export const getEventParticipantStats = async (eventId: number) => {
   const totalParticipants$ = db
     .select({
       eventId: cartInformation$.eventId,
-      totalParticipants: count().as("totalParticipants"),
+      totalParticipants: count(cartInformation$.clerkId).as(
+        "totalParticipants",
+      ),
       totalPrice: sum(cartInformation$.totalPrice)
         .mapWith(Number)
         .as("totalPrice"),
     })
     .from(cartInformation$)
-    .groupBy((table) => table.eventId)
+    .groupBy((table) => [table.eventId])
     .as("totalParticipants$");
 
   const cartPaymentStatus$ = db
@@ -127,7 +134,7 @@ type GetUsersInEventProps = {
   eventId: number;
 };
 
-type UserCartInEvent = {
+export type UserCartInEvent = {
   id: number;
   clerkId: string;
   clerkName: Nullable<string>;
@@ -194,7 +201,7 @@ export const getUsersInEvent = async ({
     })
     .from(userWithCartInfo$)
     .innerJoin(OrderCartTable, eq(OrderCartTable.id, userWithCartInfo$.cartId))
-    .leftJoin(OrderItemTable, eq(OrderItemTable.cartId, OrderCartTable.id))
+    .innerJoin(OrderItemTable, eq(OrderItemTable.cartId, OrderCartTable.id))
     .innerJoin(
       OrderEventProductTable,
       eq(OrderItemTable.orderEventProductId, OrderEventProductTable.id),
@@ -221,21 +228,28 @@ export const getUsersInEvent = async ({
     .select({ total: count() })
     .from(userWithCartInfo$);
 
-  const rawData = await userQuery$;
-  const data = new Map<number, UserCartInEvent>();
+  const rawData = await userQuery$.limit(limit).offset((page - 1) * limit);
+  const data = new Map<string, UserCartInEvent>();
+
+  const needClerkInformation: string[] = [];
 
   rawData.forEach((row) => {
-    const existData = data.get(row.id);
+    const existData = data.get(row.clerkId);
     if (existData) {
-      existData.item.push({
-        id: row["item.id"],
-        name: row["item.name"],
-        description: row["item.description"],
-        price: row["item.price"],
-        amount: row["item.amount"],
-      });
+      const isProductExist = existData.item.find(
+        (item) => item.id === row["item.id"],
+      );
+      if (!isProductExist) {
+        existData.item.push({
+          id: row["item.id"],
+          name: row["item.name"],
+          description: row["item.description"],
+          price: row["item.price"],
+          amount: row["item.amount"],
+        });
+      }
     } else {
-      data.set(row.id, {
+      data.set(row.clerkId, {
         id: row.id,
         clerkId: row.clerkId,
         clerkName: row.clerkName,
@@ -245,19 +259,80 @@ export const getUsersInEvent = async ({
         paymentConfirmationAt: row.paymentConfirmationAt,
         item: [
           {
-            id: row.item.id,
-            name: row.item.name,
-            description: row.item.description,
-            price: row.item.price,
-            amount: row.item.amount,
+            id: row["item.id"],
+            name: row["item.name"],
+            description: row["item.description"],
+            price: row["item.price"],
+            amount: row["item.amount"],
           },
         ],
       });
+
+      if (isNullish(row.clerkName) || isNullish(row.clerkEmail)) {
+        needClerkInformation.push(row.clerkId);
+      }
     }
   });
 
+  if (needClerkInformation.length > 0) {
+    const additionalClerkInformation = await clerkClient.users.getUserList({
+      userId: needClerkInformation,
+    });
+
+    const updateCartInfo: Array<{
+      cartId: number;
+      clerkName: Nullable<string>;
+      clerkEmail: Nullable<string>;
+    }> = [];
+
+    additionalClerkInformation.data.forEach((clerk) => {
+      const cart = data.get(clerk.id);
+      if (cart) {
+        const { clerkName, clerkEmail } = getClerkPublicData(clerk);
+        let hasUpdate = false;
+
+        if (!isNullish(clerkName) && clerkName !== cart.clerkName) {
+          cart.clerkName = clerkName;
+          hasUpdate = true;
+        }
+
+        if (!isNullish(clerkEmail) && clerkEmail !== cart.clerkEmail) {
+          cart.clerkEmail = clerkEmail;
+          hasUpdate = true;
+        }
+
+        if (hasUpdate) {
+          updateCartInfo.push({
+            cartId: cart.id,
+            clerkName,
+            clerkEmail,
+          });
+        }
+      }
+    });
+
+    if (updateCartInfo.length > 0) {
+      await db.transaction(async (ctx) => {
+        const updatePromise: Promise<ResultSet>[] = [];
+        for (const { cartId, clerkName, clerkEmail } of updateCartInfo) {
+          updatePromise.push(
+            ctx
+              .update(OrderCartTable)
+              .set({
+                clerkName,
+                clerkEmail,
+              })
+              .where(eq(OrderCartTable.id, cartId)),
+          );
+        }
+
+        await Promise.allSettled(updatePromise);
+      });
+    }
+  }
+
   return {
-    data: await userQuery$,
+    data: Array.from(data.values()),
     total,
   };
 };

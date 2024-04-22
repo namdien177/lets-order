@@ -21,25 +21,12 @@ import {
 } from "@/server/db/schema";
 import { and, asc, eq, inArray, like } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
-import { isNullish } from "@/lib/utils";
-import { assertAsNonNullish, type Nullable } from "@/lib/types/helper";
+import { getClerkPublicData, isNullish } from "@/lib/utils";
+import { assertAsNonNullish } from "@/lib/types/helper";
 import { type User } from "@clerk/backend";
 
 const createCart = async (clerkUser: User, orderPayload: CreateCartPayload) => {
-  let clerkName: Nullable<string> =
-    `${clerkUser.firstName ?? ""} ${clerkUser.lastName ?? ""}`.trim();
-  if (clerkName.length === 0) {
-    clerkName = null;
-    if (clerkUser.username) {
-      clerkName = clerkUser.username;
-    }
-  }
-  const clerkEmail =
-    (clerkUser.primaryEmailAddressId
-      ? clerkUser.emailAddresses.find(
-          (e) => e.id === clerkUser.primaryEmailAddressId,
-        )?.emailAddress
-      : null) ?? null;
+  const { clerkName, clerkEmail } = getClerkPublicData(clerkUser);
 
   const cart = await db.transaction(async (ctx) => {
     const [inserted] = await ctx
