@@ -101,56 +101,56 @@ const EventMenu = ({ eventId, cart, onUpdated }: Props) => {
   return (
     <form
       onSubmit={handleSubmit(onPlacingOrder)}
-      className={"relative flex w-full flex-col gap-4"}
+      className={"relative flex w-full flex-col gap-12"}
     >
-      <h1 className={"text-xl font-bold uppercase"}>Menu</h1>
+      <div className={"flex flex-col gap-4"}>
+        <h1 className={"text-xl font-bold uppercase"}>Menu</h1>
 
-      <div className={"relative inset-x-0 top-0 bg-background py-2"}>
-        <Search
-          size={16}
-          className={
-            "absolute left-2 top-1/2 -translate-y-1/2 transform text-accent-foreground"
-          }
-        />
-        <DebouncedInput
-          className={"pl-8"}
-          placeholder={"Search for products"}
-          onDebouncedChange={setSearchKey}
-        />
-      </div>
+        <div className={"relative inset-x-0 top-0 bg-background"}>
+          <Search
+            size={16}
+            className={
+              "absolute left-2 top-1/2 -translate-y-1/2 transform text-accent-foreground"
+            }
+          />
+          <DebouncedInput
+            className={"pl-8"}
+            placeholder={"Search for products"}
+            onDebouncedChange={setSearchKey}
+          />
+        </div>
 
-      <div className={"flex max-h-96 flex-col gap-4 overflow-y-auto"}>
-        {data?.map((product) => {
-          const itemIndex = getItemIndex(product.id, fields);
-          const isSelected = itemIndex > -1;
+        <div className="flex max-h-96 flex-col gap-4 overflow-y-auto">
+          {data?.map((product) => {
+            const itemIndex = getItemIndex(product.id, fields);
+            const isSelected = itemIndex > -1;
 
-          return (
-            <div
-              key={product.id}
-              className={cn(
-                "group flex cursor-pointer select-none items-center gap-4 rounded-md border-2 border-accent p-4 transition hover:border-accent-foreground",
-                isSelected
-                  ? "border-accent-foreground hover:border-accent-foreground/50"
-                  : "border-accent",
-              )}
-              onClick={() => toggleSelectItem(product, itemIndex)}
-            >
-              <div className="flex flex-1 flex-col">
-                <p className={"text-primary"}>{product.name}</p>
-                <small className={"line-clamp-2 text-muted-foreground"}>
-                  {product.description}
-                </small>
+            return (
+              <div
+                key={product.id}
+                className={cn(
+                  "group flex cursor-pointer select-none items-center gap-4 rounded-md border-2 border-accent p-4 transition hover:border-accent-foreground",
+                  isSelected
+                    ? "border-accent-foreground hover:border-accent-foreground/50"
+                    : "border-accent",
+                )}
+                onClick={() => toggleSelectItem(product, itemIndex)}
+              >
+                <div className="flex flex-1 flex-col">
+                  <p className={"text-primary"}>{product.name}</p>
+                  <small className={"line-clamp-2 text-muted-foreground"}>
+                    {product.description}
+                  </small>
+                </div>
+                <p className={"text-primary"}>{formatAsMoney(product.price)}</p>
+                <EventMenuStatus isSelected={isSelected} />
               </div>
-              <p className={"text-primary"}>{formatAsMoney(product.price)}</p>
-              <EventMenuStatus isSelected={isSelected} />
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
 
-      <hr />
-
-      <div className="sticky inset-x-0 bottom-4 flex w-full flex-col gap-4 rounded border bg-background p-4">
+      <div className="flex w-full flex-col gap-4 rounded border bg-background p-4">
         <h1 className={"text-xl font-bold capitalize"}>Your cart</h1>
         <hr />
         {fields.length === 0 && (

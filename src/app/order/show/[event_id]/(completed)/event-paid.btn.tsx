@@ -11,7 +11,7 @@ type Props = Omit<ButtonProps, "onClick"> & {
 };
 
 const EventPaidBtn = ({ cartId, disabled, ...props }: Props) => {
-  const { mutateAsync, isPending } = useMutation({
+  const { mutateAsync, isPending, data } = useMutation({
     mutationFn: markOrderAsPaid,
   });
 
@@ -30,7 +30,9 @@ const EventPaidBtn = ({ cartId, disabled, ...props }: Props) => {
     <Button
       {...props}
       onClick={() => onMarking()}
-      disabled={!!disabled || isPending}
+      disabled={
+        !!disabled || isPending || data?.type === BaseResponseType.success
+      }
     >
       {isPending ? "Marking..." : "Mark as Paid"}
     </Button>

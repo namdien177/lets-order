@@ -2,6 +2,16 @@ import { type ReactNode } from "react";
 import { db } from "@/server/db";
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
+import { Home } from "lucide-react";
+import ManageNavigationBar from "@/app/order/manage/[event_id]/(layout)/navigation-bar";
 
 type LayoutProps = {
   children?: ReactNode;
@@ -18,16 +28,51 @@ const LayoutManageOrder = async ({ children, params }: LayoutProps) => {
     redirect("/sign-in");
   }
 
-  const ownerEventInfo = await db.query.OrderEventTable.findFirst({
+  const ownerEvent = await db.query.OrderEventTable.findFirst({
     where: (table, { and, eq }) =>
       and(eq(table.id, eventId), eq(table.clerkId, userId)),
   });
 
-  if (!ownerEventInfo) {
+  if (!ownerEvent) {
     redirect("/order");
   }
 
-  return <>{children}</>;
+  return (
+    <div className={"container mx-auto flex flex-col gap-8 p-4 md:p-8"}>
+      <Breadcrumb className={"w-full"}>
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink href="/">
+              <Home size={16} />
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbLink href={"/order"}>Order</BreadcrumbLink>
+          </BreadcrumbItem>
+
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbLink href={`/order/show/${ownerEvent.id}`}>
+              {ownerEvent.name}
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbPage className={"flex items-center gap-2"}>
+              Manage
+            </BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
+
+      <ManageNavigationBar event={ownerEvent} />
+
+      {children}
+    </div>
+  );
 };
 
 export default LayoutManageOrder;

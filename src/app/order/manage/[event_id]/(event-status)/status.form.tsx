@@ -24,7 +24,7 @@ import { useMutation } from "@tanstack/react-query";
 import { updateEventToStatus } from "@/app/order/manage/[event_id]/(event-status)/status.action";
 import { BaseResponseType } from "@/lib/types/response.type";
 import { toast } from "sonner";
-import { cn, getEventStatusVerbose } from "@/lib/utils";
+import { cn, getEventStatusVerbose, isNullish } from "@/lib/utils";
 
 const calculateStatusAction = (currentStatus: number) => {
   let fullBackStatus: Optional<OrderEventStatus>;
@@ -100,7 +100,7 @@ const EventStatusForm = ({ orderEvent }: Props) => {
       <h1 className={"text-xl leading-tight"}>Event Status</h1>
 
       <div className="flex items-center gap-2">
-        {fullBackStatus && (
+        {!isNullish(fullBackStatus) && (
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -124,7 +124,7 @@ const EventStatusForm = ({ orderEvent }: Props) => {
             </Tooltip>
           </TooltipProvider>
         )}
-        {previousStatus && (
+        {!isNullish(previousStatus) && (
           <>
             <Button
               onClick={() => updateStatus(previousStatus)}
@@ -157,7 +157,7 @@ const EventStatusForm = ({ orderEvent }: Props) => {
           </span>
         </div>
 
-        {nextStatus && (
+        {!isNullish(nextStatus) && (
           <>
             <ArrowRight size={16} />
 
