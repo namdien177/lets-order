@@ -39,12 +39,12 @@ const CartItem = ({ cart, index, onUpdated }: Props) => {
     }
   };
 
-  const { mutateAsync, isPending } = useMutation({
+  const { mutateAsync, isPending, data } = useMutation({
     mutationFn: markUserCartCompletePayment,
   });
 
-  const handleConfirmPayment = async (id: number) => {
-    const result = await mutateAsync({ cartId: cart.id, force: true });
+  const handleConfirmPayment = async (cartId: number) => {
+    const result = await mutateAsync({ cartId, force: true });
 
     if (result.type === BaseResponseType.success) {
       onUpdated && onUpdated();
@@ -77,15 +77,13 @@ const CartItem = ({ cart, index, onUpdated }: Props) => {
         {cart.paymentConfirmationAt ? (
           <div className="flex flex-col gap-1">
             <p>Confirmed</p>
-            {cart.paymentAt && (
-              <small className={"text-xs text-muted-foreground"}>
-                {formatDate(cart.paymentConfirmationAt)}
-              </small>
-            )}
+            <small className={"text-xs text-muted-foreground"}>
+              {formatDate(cart.paymentConfirmationAt)}
+            </small>
           </div>
         ) : (
           <Button
-            disabled={isPending}
+            disabled={isPending || data?.type === BaseResponseType.success}
             variant={"outline"}
             size={"sm"}
             onClick={() => handleConfirmPayment(cart.id)}

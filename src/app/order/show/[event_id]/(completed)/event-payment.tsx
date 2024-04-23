@@ -28,7 +28,7 @@ const EventPaymentInfo = async ({ event, cart }: Props) => {
 
       <div
         className={
-          "flex w-full flex-col gap-4 rounded border bg-background p-4"
+          "flex w-full flex-col gap-4 rounded-lg border bg-background p-4"
         }
       >
         <h1 className={"text-xl font-bold capitalize"}>Your order</h1>
@@ -53,14 +53,14 @@ const EventPaymentInfo = async ({ event, cart }: Props) => {
 
       <div
         className={
-          "sticky inset-x-0 bottom-4 flex w-full flex-col gap-4 rounded border bg-background p-4"
+          "flex w-full flex-col gap-4 rounded-lg border bg-background p-4"
         }
       >
         <h1 className={"text-xl font-bold capitalize"}>Payment Status</h1>
         <hr />
         <div className="flex items-center gap-4 text-lg">
           <h1 className={"flex-1 font-bold"}>Total</h1>
-          <p>{formatAsMoney(totalPrice)}</p>
+          <p className={"font-semibold"}>{formatAsMoney(totalPrice)}</p>
         </div>
 
         {cart.paymentStatus === ORDER_PAYMENT_STATUS.PENDING ? (
