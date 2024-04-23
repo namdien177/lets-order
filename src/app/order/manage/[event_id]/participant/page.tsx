@@ -23,7 +23,7 @@ const Page = async ({ params: { event_id } }: PageProps) => {
 
   return (
     <div className={"flex flex-col"}>
-      <h1 className={"text-lg"}>Statistic</h1>
+      <h1 className={"text-lg font-medium"}>Statistic</h1>
       <div
         className={
           "flex flex-nowrap gap-4 overflow-x-auto overflow-y-visible py-4"
