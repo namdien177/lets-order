@@ -11,7 +11,6 @@ import {
   ORDER_EVENT_STATUS,
   type OrderEventStatus,
 } from "@/server/db/constant";
-import CartList from "@/app/order/manage/[event_id]/(cart-list)/cart-list";
 
 type PageProps = NextPageProps<{
   event_id: string;
@@ -67,13 +66,6 @@ const Page = async ({ params: { event_id } }: PageProps) => {
           paymentStatus={eventInfo.paymentStatus}
           paymentAt={eventInfo.paymentAt}
           clerkId={userId}
-        />
-      )}
-
-      {billableEvent && (
-        <CartList
-          eventId={eventId}
-          eventStatus={eventInfo.status as OrderEventStatus}
         />
       )}
     </div>
