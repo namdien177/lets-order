@@ -1,16 +1,22 @@
-import { forwardRef, type InputHTMLAttributes, useEffect, useState } from "react";
-import useDebounce from "@/lib/hooks/useDebounce";
+import {
+  forwardRef,
+  type InputHTMLAttributes,
+  useEffect,
+  useState,
+} from "react";
+import useDebounce, { type OptionProps } from "@/lib/hooks/useDebounce";
 import { Input } from "@/components/ui/input";
 
 export type InputProps = InputHTMLAttributes<HTMLInputElement> & {
   value?: string;
   onDebouncedChange?: (value: string) => void;
+  debounceOptions?: OptionProps;
 };
 
 const DebouncedInput = forwardRef<HTMLInputElement, InputProps>(
-  ({ onChange, onDebouncedChange, value, ...props }, ref) => {
+  ({ onChange, onDebouncedChange, debounceOptions, value, ...props }, ref) => {
     const [rawKeyword, setKeyword] = useState<string>(value ?? "");
-    const keyword = useDebounce(rawKeyword);
+    const keyword = useDebounce(rawKeyword, debounceOptions);
 
     useEffect(() => {
       onDebouncedChange?.(keyword);

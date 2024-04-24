@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-type OptionProps = {
+export type OptionProps = {
   debouncedFor?: number;
   distinctChanges?: boolean;
 };

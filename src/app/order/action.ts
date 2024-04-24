@@ -1,8 +1,17 @@
 import { type PaginationParams } from "@/lib/types/pagination.types";
 import { db } from "@/server/db";
-import { OrderCartTable, OrderEventTable } from "@/server/db/schema";
-import { count, desc, eq, ilike, or } from "drizzle-orm";
+import {
+  OrderCartTable,
+  OrderEventProductTable,
+  OrderEventTable,
+  OrderItemTable,
+  ProductTable,
+} from "@/server/db/schema";
+import { and, count, desc, eq, ilike, like, or } from "drizzle-orm";
 import { union } from "drizzle-orm/sqlite-core";
+import { extractPaginationParams, isNullish } from "@/lib/utils";
+import { auth } from "@clerk/nextjs/server";
+import { assertAsNonNullish } from "@/lib/types/helper";
 
 export const queryOrders = async ({
   keyword,

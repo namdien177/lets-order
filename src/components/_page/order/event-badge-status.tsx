@@ -4,7 +4,7 @@ import { Badge, type BadgeProps } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
 type Props = BadgeProps & {
-  data: OrderEvent;
+  data: Pick<OrderEvent, "status">;
 };
 
 const EventBadgeStatus = ({
@@ -24,7 +24,7 @@ const EventBadgeStatus = ({
           className,
         )}
       >
-        OPEN FOR ORDER
+        Open
       </Badge>
     );
   }

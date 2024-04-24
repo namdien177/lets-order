@@ -1,7 +1,7 @@
 import { type NextPageProps } from "@/lib/types/nextjs";
 import { redirect } from "next/navigation";
 import { Home, Info, Settings, Share2 } from "lucide-react";
-import EventBadgeStatus from "@/app/order/show/[event_id]/event-badge-status";
+import EventBadgeStatus from "@/components/_page/order/event-badge-status";
 import {
   Breadcrumb,
   BreadcrumbItem,
