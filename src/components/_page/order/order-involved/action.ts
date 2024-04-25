@@ -149,7 +149,7 @@ export const queryInvolvedOrders = async ({
         eq(OrderCartTable.clerkId, clerkId),
       ),
     )
-    .orderBy((table) => [desc(table.createdAt), asc(table.status)])
+    .orderBy((table) => [desc(table.status), desc(table.createdAt)])
     .limit(limit)
     .offset(Math.max(0, page - 1) * limit);
 

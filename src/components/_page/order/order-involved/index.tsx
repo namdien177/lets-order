@@ -34,6 +34,7 @@ import {
   PaginationNextButton,
   PaginationPreviousButton,
 } from "@/components/ui/pagination";
+import { ORDER_EVENT_STATUS } from "@/server/db/constant";
 
 const limit = 10;
 const MULTIPLE_PAGE_THRESHOLD = 5;
@@ -105,7 +106,9 @@ const OrderInvolved = ({ clerkId, initialQuery }: OrderInvolvedProps) => {
                 <TableRow
                   key={order.id}
                   onClick={() => router.push(`/order/show/${order.id}`)}
-                  className={"cursor-pointer"}
+                  className={cn("cursor-pointer", {
+                    "opacity-50": order.status === ORDER_EVENT_STATUS.CANCELLED,
+                  })}
                 >
                   <TableCell>{pageStartIndex + index + 1}</TableCell>
                   <TableCell>
@@ -126,20 +129,24 @@ const OrderInvolved = ({ clerkId, initialQuery }: OrderInvolvedProps) => {
                       <p className={"text-lg font-semibold"}>{order.name}</p>
                     </div>
                   </TableCell>
-                  <TableCell>
-                    <Badge
-                      className={cn(
-                        "w-full justify-center rounded-full text-xs capitalize text-white",
-                        {
-                          "bg-blue-600 hover:bg-blue-700":
-                            order.paymentStatus === "PAID",
-                          "bg-yellow-600 hover:bg-yellow-700":
-                            order.paymentStatus === "PENDING",
-                        },
-                      )}
-                    >
-                      {order.paymentStatus.toLocaleLowerCase()}
-                    </Badge>
+                  <TableCell className={"text-center"}>
+                    {order.status >= ORDER_EVENT_STATUS.ACTIVE ? (
+                      <Badge
+                        className={cn(
+                          "w-full justify-center rounded-full text-xs capitalize text-white",
+                          {
+                            "bg-blue-600 hover:bg-blue-700":
+                              order.paymentStatus === "PAID",
+                            "bg-yellow-600 hover:bg-yellow-700":
+                              order.paymentStatus === "PENDING",
+                          },
+                        )}
+                      >
+                        {order.paymentStatus.toLocaleLowerCase()}
+                      </Badge>
+                    ) : (
+                      "-"
+                    )}
                   </TableCell>
                   <TableCell className={"text-center font-semibold"}>
                     {order.cart ? formatAsMoney(order.cart.price) : "N/A"}
