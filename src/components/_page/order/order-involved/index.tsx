@@ -142,7 +142,7 @@ const OrderInvolved = ({ clerkId, initialQuery }: OrderInvolvedProps) => {
                     </Badge>
                   </TableCell>
                   <TableCell className={"text-center font-semibold"}>
-                    {formatAsMoney(order.cart.price)}
+                    {order.cart ? formatAsMoney(order.cart.price) : "N/A"}
                   </TableCell>
 
                   <TableCell>

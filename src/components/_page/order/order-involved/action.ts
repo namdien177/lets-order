@@ -2,7 +2,7 @@
 
 import type { PaginationParams } from "@/lib/types/pagination.types";
 import { auth } from "@clerk/nextjs/server";
-import { assertAsNonNullish } from "@/lib/types/helper";
+import { assertAsNonNullish, type Nullable } from "@/lib/types/helper";
 import { extractPaginationParams, isNullish } from "@/lib/utils";
 import { db } from "@/server/db";
 import {
@@ -14,7 +14,7 @@ import {
   OrderItemTable,
   ProductTable,
 } from "@/server/db/schema";
-import { and, count, desc, eq, like, or, sql } from "drizzle-orm";
+import { and, asc, count, desc, eq, like, or, sql } from "drizzle-orm";
 import { unflatten } from "flat";
 
 type QueryInvolvedOrdersProps = {
@@ -33,12 +33,14 @@ export type InvolvedOrder = Pick<
   | "status"
   | "createdAt"
 > & {
-  cart: Pick<
-    OrderCart,
-    "id" | "paymentStatus" | "paymentAt" | "paymentConfirmationAt"
-  > & {
-    price: number;
-  };
+  cart: Nullable<
+    Pick<
+      OrderCart,
+      "id" | "paymentStatus" | "paymentAt" | "paymentConfirmationAt"
+    > & {
+      price: number;
+    }
+  >;
 };
 
 export const queryInvolvedOrders = async ({
@@ -57,12 +59,12 @@ export const queryInvolvedOrders = async ({
     })
     .from(OrderEventTable)
     .leftJoin(OrderCartTable, eq(OrderEventTable.id, OrderCartTable.eventId))
-    .leftJoin(OrderItemTable, eq(OrderCartTable.id, OrderItemTable.cartId))
-    .leftJoin(
+    .innerJoin(OrderItemTable, eq(OrderCartTable.id, OrderItemTable.cartId))
+    .innerJoin(
       OrderEventProductTable,
       eq(OrderItemTable.orderEventProductId, OrderEventProductTable.id),
     )
-    .leftJoin(
+    .innerJoin(
       ProductTable,
       eq(OrderEventProductTable.productId, ProductTable.id),
     )
@@ -140,14 +142,14 @@ export const queryInvolvedOrders = async ({
       OrderEventTable,
       eq(totalPriceInEvent$.eventId, OrderEventTable.id),
     )
-    .innerJoin(
+    .leftJoin(
       OrderCartTable,
       and(
         eq(OrderCartTable.eventId, OrderEventTable.id),
         eq(OrderCartTable.clerkId, clerkId),
       ),
     )
-    .orderBy((table) => [desc(table.createdAt)])
+    .orderBy((table) => [desc(table.createdAt), asc(table.status)])
     .limit(limit)
     .offset(Math.max(0, page - 1) * limit);
 
