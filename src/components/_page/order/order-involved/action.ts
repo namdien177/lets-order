@@ -15,7 +15,6 @@ import {
   ProductTable,
 } from "@/server/db/schema";
 import { and, count, desc, eq, like, or, sql } from "drizzle-orm";
-import { union } from "drizzle-orm/sqlite-core";
 import { unflatten } from "flat";
 
 type QueryInvolvedOrdersProps = {
@@ -34,11 +33,12 @@ export type InvolvedOrder = Pick<
   | "status"
   | "createdAt"
 > & {
-  price: number;
   cart: Pick<
     OrderCart,
     "id" | "paymentStatus" | "paymentAt" | "paymentConfirmationAt"
-  >;
+  > & {
+    price: number;
+  };
 };
 
 export const queryInvolvedOrders = async ({
@@ -51,24 +51,27 @@ export const queryInvolvedOrders = async ({
   const { limit, keyword, page } = extractPaginationParams(query);
   const clerkId = clerkIdFromProps ?? userId;
 
-  const yourCarts$ = db
+  const eventsYouInvolved$ = db
     .selectDistinct({
-      eventId: OrderCartTable.eventId,
+      eventId: OrderEventTable.id,
     })
-    .from(OrderCartTable)
-    .innerJoin(OrderEventTable, eq(OrderCartTable.eventId, OrderEventTable.id))
-    .innerJoin(OrderItemTable, eq(OrderCartTable.id, OrderItemTable.cartId))
-    .innerJoin(
+    .from(OrderEventTable)
+    .leftJoin(OrderCartTable, eq(OrderEventTable.id, OrderCartTable.eventId))
+    .leftJoin(OrderItemTable, eq(OrderCartTable.id, OrderItemTable.cartId))
+    .leftJoin(
       OrderEventProductTable,
       eq(OrderItemTable.orderEventProductId, OrderEventProductTable.id),
     )
-    .innerJoin(
+    .leftJoin(
       ProductTable,
       eq(OrderEventProductTable.productId, ProductTable.id),
     )
     .where(
       and(
-        eq(OrderCartTable.clerkId, clerkId),
+        or(
+          eq(OrderEventTable.clerkId, clerkId),
+          eq(OrderCartTable.clerkId, clerkId),
+        ),
         isNullish(keyword)
           ? undefined
           : or(
@@ -79,29 +82,7 @@ export const queryInvolvedOrders = async ({
             ),
       ),
     )
-    .$dynamic();
-
-  const yourEvents$ = db
-    .selectDistinct({
-      eventId: OrderEventTable.id,
-    })
-    .from(OrderEventTable)
-    .where(
-      and(
-        eq(OrderEventTable.clerkId, clerkId),
-        isNullish(keyword)
-          ? undefined
-          : or(
-              like(OrderEventTable.name, `%${keyword}%`),
-              like(OrderEventTable.code, `%${keyword}%`),
-            ),
-      ),
-    )
-    .$dynamic();
-
-  const eventsYouInvolved$ = union(yourEvents$, yourCarts$).as(
-    "eventsYouInvolved",
-  );
+    .as("eventsYouInvolved");
 
   const totalPriceInEvent$ = db
     .select({
@@ -148,8 +129,8 @@ export const queryInvolvedOrders = async ({
       paymentStatus: OrderEventTable.paymentStatus,
       endingAt: OrderEventTable.endingAt,
       createdAt: OrderEventTable.createdAt,
-      price: totalPriceInEvent$.total,
-      "cart.id": OrderCartTable.id,
+      "cart.id": totalPriceInEvent$.cartId,
+      "cart.price": totalPriceInEvent$.total,
       "cart.paymentStatus": OrderCartTable.paymentStatus,
       "cart.paymentAt": OrderCartTable.paymentAt,
       "cart.paymentConfirmationAt": OrderCartTable.paymentConfirmationAt,

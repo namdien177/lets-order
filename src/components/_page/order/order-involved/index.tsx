@@ -24,17 +24,29 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import DebouncedInput from "@/components/form/debounce-input";
+import { type SafePaginationParams } from "@/lib/types/pagination.types";
+import {
+  Pagination,
+  PaginationButton,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationNextButton,
+  PaginationPreviousButton,
+} from "@/components/ui/pagination";
 
 const limit = 10;
+const MULTIPLE_PAGE_THRESHOLD = 5;
 
 type OrderInvolvedProps = {
   clerkId: string;
+  initialQuery: SafePaginationParams;
 };
 
-const OrderInvolved = ({ clerkId }: OrderInvolvedProps) => {
+const OrderInvolved = ({ clerkId, initialQuery }: OrderInvolvedProps) => {
   const router = useRouter();
-  const [page, setPage] = useState(1);
-  const [keyword, setKeyword] = useState("");
+  const [page, setPage] = useState(initialQuery.page);
+  const [keyword, setKeyword] = useState(initialQuery.keyword);
 
   const { data, isLoading } = useQuery({
     queryKey: ["order-involved", page, keyword],
@@ -48,8 +60,17 @@ const OrderInvolved = ({ clerkId }: OrderInvolvedProps) => {
       }),
   });
   const pageStartIndex = limit * (page - 1);
-  const total = data?.total ?? 0;
   const orders = data?.data ?? [];
+
+  const total = data?.total ?? 0;
+  const lastPage = Math.ceil(total / limit);
+
+  const hasFirstPage = page - 1 > 1;
+  const hasManyPreviousPages = page > MULTIPLE_PAGE_THRESHOLD;
+  const hasPreviousPage = page > 1;
+  const hasNextPage = page < lastPage;
+  const hasManyMorePages = lastPage - page > MULTIPLE_PAGE_THRESHOLD;
+  const hasLastPage = page + 1 < lastPage;
 
   return (
     <>
@@ -121,7 +142,7 @@ const OrderInvolved = ({ clerkId }: OrderInvolvedProps) => {
                     </Badge>
                   </TableCell>
                   <TableCell className={"text-center font-semibold"}>
-                    {formatAsMoney(order.price)}
+                    {formatAsMoney(order.cart.price)}
                   </TableCell>
 
                   <TableCell>
@@ -163,6 +184,66 @@ const OrderInvolved = ({ clerkId }: OrderInvolvedProps) => {
             </TableBody>
           </Table>
         </TooltipProvider>
+      </div>
+
+      <div className="flex justify-center">
+        <Pagination>
+          <PaginationContent>
+            <PaginationItem>
+              <PaginationPreviousButton
+                disabled={!hasPreviousPage}
+                onClick={() => setPage((s) => s - 1)}
+              />
+            </PaginationItem>
+
+            {hasFirstPage && (
+              <PaginationItem onClick={() => setPage(1)}>
+                <PaginationButton>1</PaginationButton>
+              </PaginationItem>
+            )}
+
+            {hasManyPreviousPages && (
+              <PaginationItem>
+                <PaginationEllipsis />
+              </PaginationItem>
+            )}
+
+            {hasPreviousPage && (
+              <PaginationItem onClick={() => setPage(page - 1)}>
+                <PaginationButton>{page - 1}</PaginationButton>
+              </PaginationItem>
+            )}
+
+            <PaginationItem>
+              <PaginationButton isActive>{page}</PaginationButton>
+            </PaginationItem>
+
+            {hasNextPage && (
+              <PaginationItem onClick={() => setPage(page + 1)}>
+                <PaginationButton>{page + 1}</PaginationButton>
+              </PaginationItem>
+            )}
+
+            {hasManyMorePages && (
+              <PaginationItem>
+                <PaginationEllipsis />
+              </PaginationItem>
+            )}
+
+            {hasLastPage && (
+              <PaginationItem onClick={() => setPage(lastPage)}>
+                <PaginationButton>{lastPage}</PaginationButton>
+              </PaginationItem>
+            )}
+
+            <PaginationItem>
+              <PaginationNextButton
+                disabled={!hasNextPage}
+                onClick={() => setPage((s) => s + 1)}
+              />
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
       </div>
     </>
   );

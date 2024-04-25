@@ -11,20 +11,10 @@ import { buttonVariants } from "@/components/ui/button";
 import { Home, Plus } from "lucide-react";
 import { type NextPageProps } from "@/lib/types/nextjs";
 import { type QueryParamsWithSearch } from "@/lib/types/pagination.types";
-import { extractPaginationParams, getEventStatusVerbose } from "@/lib/utils";
-import { queryOrders } from "@/app/order/action";
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
-import { Badge } from "@/components/ui/badge";
-import {
-  Card,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { format } from "date-fns";
 import OrderInvolved from "@/components/_page/order/order-involved";
+import { extractPaginationParams } from "@/lib/utils";
 
 type PageProps = NextPageProps<Record<string, string>, QueryParamsWithSearch>;
 
@@ -35,11 +25,6 @@ const Page = async ({ searchParams: rawParams }: PageProps) => {
   if (!clerkId) {
     redirect("/sign-in");
   }
-
-  const { data, total } = await queryOrders({
-    ...paginationParams,
-    clerkId,
-  });
 
   return (
     <div className={"container mx-auto flex flex-col gap-8 px-4 py-8"}>
@@ -74,7 +59,7 @@ const Page = async ({ searchParams: rawParams }: PageProps) => {
       </div>
 
       <div className={"flex flex-col gap-4"}>
-        <OrderInvolved clerkId={clerkId} />
+        <OrderInvolved clerkId={clerkId} initialQuery={paginationParams} />
       </div>
 
       {/*<div className="flex items-center gap-4">*/}

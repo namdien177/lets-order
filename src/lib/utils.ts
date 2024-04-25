@@ -1,6 +1,10 @@
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { type UnSafePaginationParams } from "@/lib/types/pagination.types";
+import {
+  PaginationParams,
+  type SafePaginationParams,
+  type UnSafePaginationParams,
+} from "@/lib/types/pagination.types";
 import { type Nullable, type Nullish, type Optional } from "@/lib/types/helper";
 import { z } from "zod";
 import { ORDER_EVENT_STATUS } from "@/server/db/constant";
@@ -75,7 +79,7 @@ export function extractPaginationParams(
     defaultPerPage?: number;
     minKeywordLength?: number;
   },
-) {
+): SafePaginationParams {
   let page = opts?.defaultPage ?? 1;
   let limit = opts?.defaultPerPage ?? 10;
   const minKeywordLength = opts?.minKeywordLength ?? 3;

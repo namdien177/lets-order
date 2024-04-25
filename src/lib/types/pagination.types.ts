@@ -18,6 +18,12 @@ export type PaginationParams = {
   keyword?: string;
 };
 
+export type SafePaginationParams = {
+  page: number;
+  limit: number;
+  keyword?: string;
+};
+
 export type QueryParamsWithSearchZodParse = z.SafeParseReturnType<
   QueryParamsWithSearch,
   QueryParamsWithSearch
