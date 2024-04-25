@@ -59,12 +59,12 @@ export const queryInvolvedOrders = async ({
     })
     .from(OrderEventTable)
     .leftJoin(OrderCartTable, eq(OrderEventTable.id, OrderCartTable.eventId))
-    .innerJoin(OrderItemTable, eq(OrderCartTable.id, OrderItemTable.cartId))
-    .innerJoin(
+    .leftJoin(OrderItemTable, eq(OrderCartTable.id, OrderItemTable.cartId))
+    .leftJoin(
       OrderEventProductTable,
       eq(OrderItemTable.orderEventProductId, OrderEventProductTable.id),
     )
-    .innerJoin(
+    .leftJoin(
       ProductTable,
       eq(OrderEventProductTable.productId, ProductTable.id),
     )
@@ -103,12 +103,12 @@ export const queryInvolvedOrders = async ({
         eq(OrderCartTable.clerkId, clerkId),
       ),
     )
-    .innerJoin(OrderItemTable, eq(OrderCartTable.id, OrderItemTable.cartId))
-    .innerJoin(
+    .leftJoin(OrderItemTable, eq(OrderCartTable.id, OrderItemTable.cartId))
+    .leftJoin(
       OrderEventProductTable,
       eq(OrderItemTable.orderEventProductId, OrderEventProductTable.id),
     )
-    .innerJoin(
+    .leftJoin(
       ProductTable,
       eq(OrderEventProductTable.productId, ProductTable.id),
     )
@@ -153,9 +153,7 @@ export const queryInvolvedOrders = async ({
     .limit(limit)
     .offset(Math.max(0, page - 1) * limit);
 
-  const data: Array<InvolvedOrder> = rawData.map((row) => {
-    return unflatten(row);
-  });
+  const data: Array<InvolvedOrder> = rawData.map((row) => unflatten(row));
 
   return {
     total,
