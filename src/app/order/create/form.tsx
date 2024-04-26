@@ -55,7 +55,7 @@ const ExtendedSchema = OrderEventCreationSchema.merge(
         }),
       )
       .min(1)
-      .max(5),
+      .max(100),
   }),
 );
 
