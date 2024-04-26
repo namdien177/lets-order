@@ -31,13 +31,14 @@ import { Button } from "@/components/ui/button";
 import { useMutation } from "@tanstack/react-query";
 import { createProductAction } from "@/app/product/create/action";
 import { BaseResponseType } from "@/lib/types/response.type";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
-type Props = Pick<CreateProductPayload, "clerkId"> & {
-  onSubmit?: (data: CreateProductPayload & { id: number }) => void;
-};
+type Props = Pick<CreateProductPayload, "clerkId">;
 
-const CreateProductForm = ({ clerkId, onSubmit }: Props) => {
-  const { mutateAsync, isPending } = useMutation({
+const CreateProductForm = ({ clerkId }: Props) => {
+  const router = useRouter();
+  const { mutateAsync, isPending, isSuccess } = useMutation({
     mutationFn: createProductAction,
   });
 
@@ -56,12 +57,11 @@ const CreateProductForm = ({ clerkId, onSubmit }: Props) => {
   const onHandleSubmit = async (data: CreateProductPayload) => {
     const result = await mutateAsync(data);
     if (result.type === BaseResponseType.success) {
-      onSubmit?.({
-        ...result.data,
-        description: data.description,
-        clerkId,
-      });
+      toast.success(result.message);
+      return router.push("/product");
     }
+
+    toast.error(result.error);
   };
 
   return (
@@ -144,7 +144,7 @@ const CreateProductForm = ({ clerkId, onSubmit }: Props) => {
         </CardContent>
 
         <CardFooter className={"justify-end"}>
-          <Button>
+          <Button disabled={isPending || isSuccess}>
             {isPending ? (
               <Loader2 size={16} className={"animate-spin"} />
             ) : (
