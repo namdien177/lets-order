@@ -35,6 +35,7 @@ import {
   PaginationPreviousButton,
 } from "@/components/ui/pagination";
 import { ORDER_EVENT_STATUS } from "@/server/db/constant";
+import { dateFromDB } from "@/server/db/helper";
 
 const limit = 10;
 const MULTIPLE_PAGE_THRESHOLD = 5;
@@ -163,14 +164,14 @@ const OrderInvolved = ({ clerkId, initialQuery }: OrderInvolvedProps) => {
                     <Tooltip>
                       <TooltipTrigger>
                         <small className={"text-xs"}>
-                          {formatDistanceToNow(new Date(order.createdAt), {
+                          {formatDistanceToNow(dateFromDB(order.createdAt), {
                             addSuffix: true,
                           })}
                         </small>
                       </TooltipTrigger>
                       <TooltipContent>
                         {format(
-                          new Date(order.createdAt),
+                          dateFromDB(order.createdAt),
                           "yyyy/MM/dd HH:mm:ss",
                         )}
                       </TooltipContent>
