@@ -16,7 +16,7 @@ type SheetOwnedProductProps = {
   onChange?: (products: SelectProduct[]) => void;
 };
 
-const LIMIT_PER_EVENT = 5;
+const LIMIT_PER_EVENT = 10;
 
 const SheetOwnedProduct = ({
   clerkId,
