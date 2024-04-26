@@ -23,7 +23,7 @@ const Page = async ({ params: { event_id } }: PageProps) => {
   if (!userId) {
     redirect("/sign-in");
   }
-  const eventInfo = await db.query.OrderEventTable.findFirst({
+  const eventInfo = await db.query.EventTable.findFirst({
     where: (table, { eq, and }) =>
       and(eq(table.id, eventId), eq(table.clerkId, userId)),
   });

@@ -1,9 +1,9 @@
 import { db } from "@/server/db";
 import {
-  type OrderCart,
-  type OrderEvent,
-  OrderEventProductTable,
-  OrderEventTable,
+  type Cart,
+  type Event,
+  EventProductTable,
+  EventTable,
   type Product,
   ProductTable,
 } from "@/server/db/schema";
@@ -13,7 +13,7 @@ import { type Nullable } from "@/lib/types/helper";
 import { type CartItemPayload } from "@/app/order/show/[event_id]/schema";
 
 export type QueryEventWithProductsResult = Pick<
-  OrderEvent,
+  Event,
   | "id"
   | "code"
   | "clerkId"
@@ -34,37 +34,31 @@ export const queryEventWithProducts = async (
 ): Promise<QueryEventWithProductsResult | null> => {
   const result = await db
     .select({
-      id: OrderEventTable.id,
-      code: OrderEventTable.code,
-      clerkId: OrderEventTable.clerkId,
-      name: OrderEventTable.name,
-      status: OrderEventTable.status,
-      paymentStatus: OrderEventTable.paymentStatus,
-      paymentAt: OrderEventTable.paymentAt,
-      endingAt: OrderEventTable.endingAt,
-      createdAt: OrderEventTable.createdAt,
-      updatedAt: OrderEventTable.updatedAt,
+      id: EventTable.id,
+      code: EventTable.code,
+      clerkId: EventTable.clerkId,
+      name: EventTable.name,
+      status: EventTable.status,
+      paymentStatus: EventTable.paymentStatus,
+      paymentAt: EventTable.paymentAt,
+      endingAt: EventTable.endingAt,
+      createdAt: EventTable.createdAt,
+      updatedAt: EventTable.updatedAt,
       "items.id": ProductTable.id,
       "items.name": ProductTable.name,
       "items.description": ProductTable.description,
       "items.price": ProductTable.price,
     })
-    .from(OrderEventTable)
-    .leftJoin(
-      OrderEventProductTable,
-      eq(OrderEventTable.id, OrderEventProductTable.eventId),
-    )
-    .innerJoin(
-      ProductTable,
-      eq(OrderEventProductTable.productId, ProductTable.id),
-    )
+    .from(EventTable)
+    .leftJoin(EventProductTable, eq(EventTable.id, EventProductTable.eventId))
+    .innerJoin(ProductTable, eq(EventProductTable.productId, ProductTable.id))
     .where(
       and(
-        eq(OrderEventTable.id, eventId),
+        eq(EventTable.id, eventId),
         // if the user is the creator of the event || the event is in active/locked/completed state
         or(
-          eq(OrderEventTable.clerkId, clerkId),
-          gte(OrderEventTable.status, ORDER_EVENT_STATUS.ACTIVE),
+          eq(EventTable.clerkId, clerkId),
+          gte(EventTable.status, ORDER_EVENT_STATUS.ACTIVE),
         ),
       ),
     );
@@ -95,7 +89,7 @@ export const queryEventWithProducts = async (
 };
 
 export type QueryUserCartReturn = Pick<
-  OrderCart,
+  Cart,
   | "id"
   | "eventId"
   | "clerkId"
@@ -113,7 +107,7 @@ export const queryUserCart = async (
   eventId: number,
   userId: string,
 ): Promise<Nullable<QueryUserCartReturn>> => {
-  const result = await db.query.OrderCartTable.findFirst({
+  const result = await db.query.CartTable.findFirst({
     where: (table, { and, eq }) =>
       and(eq(table.eventId, eventId), eq(table.clerkId, userId)),
     with: {

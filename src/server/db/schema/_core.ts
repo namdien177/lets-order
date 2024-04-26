@@ -6,4 +6,4 @@ import { sqliteTableCreator } from "drizzle-orm/sqlite-core";
  *
  * @see https://orm.drizzle.team/docs/goodies#multi-project-schema
  */
-export const createDbTable = sqliteTableCreator((name) => `lets-order_${name}`);
+export const createDbTable = sqliteTableCreator((name) => `lets_order_${name}`);

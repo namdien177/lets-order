@@ -11,12 +11,12 @@ import {
 } from "@/lib/types/response.type";
 import { db } from "@/server/db";
 import {
-  type OrderCart,
-  OrderCartTable,
-  type OrderEvent,
-  OrderEventProductTable,
-  type OrderItem,
-  OrderItemTable,
+  type Cart,
+  CartTable,
+  type Event,
+  EventProductTable,
+  type CartItem,
+  CartItemTable,
   ProductTable,
 } from "@/server/db/schema";
 import { and, asc, eq, inArray, like } from "drizzle-orm";
@@ -30,7 +30,7 @@ const createCart = async (clerkUser: User, orderPayload: CreateCartPayload) => {
 
   const cart = await db.transaction(async (ctx) => {
     const [inserted] = await ctx
-      .insert(OrderCartTable)
+      .insert(CartTable)
       .values({
         eventId: orderPayload.eventId,
         clerkId: clerkUser.id,
@@ -54,7 +54,7 @@ const createCart = async (clerkUser: User, orderPayload: CreateCartPayload) => {
   }
 
   // ensure items are valid
-  const items = await db.query.OrderEventProductTable.findMany({
+  const items = await db.query.EventProductTable.findMany({
     where: (table, { and, eq, inArray }) =>
       and(
         eq(table.eventId, orderPayload.eventId),
@@ -75,7 +75,7 @@ const createCart = async (clerkUser: User, orderPayload: CreateCartPayload) => {
   // insert items
   const insertItems = await db.transaction(async (ctx) => {
     const result = await ctx
-      .insert(OrderItemTable)
+      .insert(CartItemTable)
       .values(
         items.map((item) => ({
           cartId: cart.id,
@@ -104,11 +104,9 @@ const createCart = async (clerkUser: User, orderPayload: CreateCartPayload) => {
 
 const deleteCart = async (cartId: number) => {
   return db.transaction(async (ctx) => {
-    await ctx.delete(OrderItemTable).where(eq(OrderItemTable.cartId, cartId));
+    await ctx.delete(CartItemTable).where(eq(CartItemTable.cartId, cartId));
 
-    const result = await ctx
-      .delete(OrderCartTable)
-      .where(eq(OrderCartTable.id, cartId));
+    const result = await ctx.delete(CartTable).where(eq(CartTable.id, cartId));
 
     if (result.rowsAffected !== 1) {
       ctx.rollback();
@@ -121,12 +119,12 @@ const deleteCart = async (cartId: number) => {
 
 const upsertCart = async (
   cartDataId: number,
-  cartItems: OrderItem[],
+  cartItems: CartItem[],
   orderPayload: CreateCartPayload,
 ) => {
-  const toDeleteItems: Pick<OrderItem, "orderEventProductId">[] = [];
-  const toUpdateItems: Pick<OrderItem, "orderEventProductId" | "amount">[] = [];
-  const toInsertItems: Pick<OrderItem, "orderEventProductId" | "amount">[] = [
+  const toDeleteItems: Pick<CartItem, "orderEventProductId">[] = [];
+  const toUpdateItems: Pick<CartItem, "orderEventProductId" | "amount">[] = [];
+  const toInsertItems: Pick<CartItem, "orderEventProductId" | "amount">[] = [
     ...orderPayload.items.map((item) => ({
       orderEventProductId: item.eventProductId,
       amount: 1,
@@ -154,11 +152,11 @@ const upsertCart = async (
   // transaction upsert
   return db.transaction(async (ctx) => {
     if (toDeleteItems.length > 0) {
-      const deleted = await ctx.delete(OrderItemTable).where(
+      const deleted = await ctx.delete(CartItemTable).where(
         and(
-          eq(OrderItemTable.cartId, cartDataId),
+          eq(CartItemTable.cartId, cartDataId),
           inArray(
-            OrderItemTable.orderEventProductId,
+            CartItemTable.orderEventProductId,
             toDeleteItems.map((item) => item.orderEventProductId),
           ),
         ),
@@ -171,7 +169,7 @@ const upsertCart = async (
     }
 
     if (toInsertItems.length > 0) {
-      const insertedResult = await ctx.insert(OrderItemTable).values(
+      const insertedResult = await ctx.insert(CartItemTable).values(
         toInsertItems.map((item) => ({
           cartId: cartDataId,
           orderEventProductId: item.orderEventProductId,
@@ -210,7 +208,7 @@ export const PlacingOrderAction = async (orderPayload: CreateCartPayload) => {
         type: BaseResponseType.success,
         data,
         message: "Cart created successfully",
-      } as SuccessResponseData<OrderCart>;
+      } as SuccessResponseData<Cart>;
     } catch (e) {
       console.error(e);
       return {
@@ -220,7 +218,7 @@ export const PlacingOrderAction = async (orderPayload: CreateCartPayload) => {
     }
   }
 
-  const cartData = await db.query.OrderCartTable.findFirst({
+  const cartData = await db.query.CartTable.findFirst({
     where: (table, { and, eq }) =>
       and(eq(table.id, existingCartId), eq(table.clerkId, user.id)),
     with: {
@@ -283,30 +281,27 @@ export const PlacingOrderAction = async (orderPayload: CreateCartPayload) => {
 };
 
 export const getAllProductsInEvent = async (
-  event: Pick<OrderEvent, "id">,
+  event: Pick<Event, "id">,
   keyword = "",
 ) => {
   return db
     .select({
       id: ProductTable.id,
-      eventProductId: OrderEventProductTable.id,
+      eventProductId: EventProductTable.id,
       name: ProductTable.name,
       description: ProductTable.description,
       price: ProductTable.price,
       createdAt: ProductTable.createdAt,
     })
-    .from(OrderEventProductTable)
-    .innerJoin(
-      ProductTable,
-      eq(OrderEventProductTable.productId, ProductTable.id),
-    )
+    .from(EventProductTable)
+    .innerJoin(ProductTable, eq(EventProductTable.productId, ProductTable.id))
     .where(
       and(
-        eq(OrderEventProductTable.eventId, event.id),
+        eq(EventProductTable.eventId, event.id),
         keyword.trim().length >= 3
           ? like(ProductTable.name, `%${keyword.toLowerCase().trim()}%`)
           : undefined,
       ),
     )
-    .orderBy(asc(OrderEventProductTable.createdAt));
+    .orderBy(asc(EventProductTable.createdAt));
 };

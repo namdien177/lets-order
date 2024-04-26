@@ -10,7 +10,7 @@ import {
 import { auth } from "@clerk/nextjs/server";
 import { db } from "@/server/db";
 import { ORDER_EVENT_STATUS, ORDER_PAYMENT_STATUS } from "@/server/db/constant";
-import { OrderEventTable } from "@/server/db/schema";
+import { EventTable } from "@/server/db/schema";
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
@@ -24,7 +24,7 @@ export const markEventPaid = async (eventId: number) => {
     } as AuthErrorResponse;
   }
 
-  const orderEvent = await db.query.OrderEventTable.findFirst({
+  const orderEvent = await db.query.EventTable.findFirst({
     where: (table, { eq, and }) =>
       and(
         eq(table.id, eventId),
@@ -43,12 +43,12 @@ export const markEventPaid = async (eventId: number) => {
 
   const updateSuccess = await db.transaction(async (tx) => {
     const updatedResult = await tx
-      .update(OrderEventTable)
+      .update(EventTable)
       .set({
         paymentStatus: ORDER_PAYMENT_STATUS.PAID,
         paymentAt: new Date(),
       })
-      .where(eq(OrderEventTable.id, eventId));
+      .where(eq(EventTable.id, eventId));
     return updatedResult.rowsAffected === 1;
   });
 

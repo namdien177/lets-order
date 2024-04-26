@@ -6,15 +6,15 @@ import { assertAsNonNullish, type Nullable } from "@/lib/types/helper";
 import { extractPaginationParams, isNullish } from "@/lib/utils";
 import { db } from "@/server/db";
 import {
-  type OrderCart,
-  OrderCartTable,
-  type OrderEvent,
-  OrderEventProductTable,
-  OrderEventTable,
-  OrderItemTable,
+  type Cart,
+  CartItemTable,
+  CartTable,
+  type Event,
+  EventProductTable,
+  EventTable,
   ProductTable,
 } from "@/server/db/schema";
-import { and, asc, count, desc, eq, like, or, sql } from "drizzle-orm";
+import { and, count, desc, eq, like, or, sql } from "drizzle-orm";
 import { unflatten } from "flat";
 
 type QueryInvolvedOrdersProps = {
@@ -23,7 +23,7 @@ type QueryInvolvedOrdersProps = {
 };
 
 export type InvolvedOrder = Pick<
-  OrderEvent,
+  Event,
   | "id"
   | "clerkId"
   | "name"
@@ -35,7 +35,7 @@ export type InvolvedOrder = Pick<
 > & {
   cart: Nullable<
     Pick<
-      OrderCart,
+      Cart,
       "id" | "paymentStatus" | "paymentAt" | "paymentConfirmationAt"
     > & {
       price: number;
@@ -55,32 +55,26 @@ export const queryInvolvedOrders = async ({
 
   const eventsYouInvolved$ = db
     .selectDistinct({
-      eventId: OrderEventTable.id,
+      eventId: EventTable.id,
     })
-    .from(OrderEventTable)
-    .leftJoin(OrderCartTable, eq(OrderEventTable.id, OrderCartTable.eventId))
-    .leftJoin(OrderItemTable, eq(OrderCartTable.id, OrderItemTable.cartId))
+    .from(EventTable)
+    .leftJoin(CartTable, eq(EventTable.id, CartTable.eventId))
+    .leftJoin(CartItemTable, eq(CartTable.id, CartItemTable.cartId))
     .leftJoin(
-      OrderEventProductTable,
-      eq(OrderItemTable.orderEventProductId, OrderEventProductTable.id),
+      EventProductTable,
+      eq(CartItemTable.orderEventProductId, EventProductTable.id),
     )
-    .leftJoin(
-      ProductTable,
-      eq(OrderEventProductTable.productId, ProductTable.id),
-    )
+    .leftJoin(ProductTable, eq(EventProductTable.productId, ProductTable.id))
     .where(
       and(
-        or(
-          eq(OrderEventTable.clerkId, clerkId),
-          eq(OrderCartTable.clerkId, clerkId),
-        ),
+        or(eq(EventTable.clerkId, clerkId), eq(CartTable.clerkId, clerkId)),
         isNullish(keyword)
           ? undefined
           : or(
               like(ProductTable.name, `%${keyword}%`),
               like(ProductTable.description, `%${keyword}%`),
-              like(OrderEventTable.name, `%${keyword}%`),
-              like(OrderEventTable.code, `%${keyword}%`),
+              like(EventTable.name, `%${keyword}%`),
+              like(EventTable.code, `%${keyword}%`),
             ),
       ),
     )
@@ -89,29 +83,26 @@ export const queryInvolvedOrders = async ({
   const totalPriceInEvent$ = db
     .select({
       eventId: eventsYouInvolved$.eventId,
-      cartId: OrderCartTable.id,
+      cartId: CartTable.id,
       total:
-        sql<number>`SUM( CASE WHEN ${OrderItemTable.amount} IS NULL THEN 0 ELSE (${OrderItemTable.amount} * ${ProductTable.price}) END)`.as(
+        sql<number>`SUM( CASE WHEN ${CartItemTable.amount} IS NULL THEN 0 ELSE (${CartItemTable.amount} * ${ProductTable.price}) END)`.as(
           "total",
         ),
     })
     .from(eventsYouInvolved$)
     .leftJoin(
-      OrderCartTable,
+      CartTable,
       and(
-        eq(eventsYouInvolved$.eventId, OrderCartTable.eventId),
-        eq(OrderCartTable.clerkId, clerkId),
+        eq(eventsYouInvolved$.eventId, CartTable.eventId),
+        eq(CartTable.clerkId, clerkId),
       ),
     )
-    .leftJoin(OrderItemTable, eq(OrderCartTable.id, OrderItemTable.cartId))
+    .leftJoin(CartItemTable, eq(CartTable.id, CartItemTable.cartId))
     .leftJoin(
-      OrderEventProductTable,
-      eq(OrderItemTable.orderEventProductId, OrderEventProductTable.id),
+      EventProductTable,
+      eq(CartItemTable.orderEventProductId, EventProductTable.id),
     )
-    .leftJoin(
-      ProductTable,
-      eq(OrderEventProductTable.productId, ProductTable.id),
-    )
+    .leftJoin(ProductTable, eq(EventProductTable.productId, ProductTable.id))
     .groupBy((table) => [table.eventId, table.cartId])
     .as("totalPriceInEvent");
 
@@ -124,30 +115,24 @@ export const queryInvolvedOrders = async ({
   const rawData = await db
     .select({
       id: totalPriceInEvent$.eventId,
-      clerkId: OrderEventTable.clerkId,
-      code: OrderEventTable.code,
-      name: OrderEventTable.name,
-      status: OrderEventTable.status,
-      paymentStatus: OrderEventTable.paymentStatus,
-      endingAt: OrderEventTable.endingAt,
-      createdAt: OrderEventTable.createdAt,
+      clerkId: EventTable.clerkId,
+      code: EventTable.code,
+      name: EventTable.name,
+      status: EventTable.status,
+      paymentStatus: EventTable.paymentStatus,
+      endingAt: EventTable.endingAt,
+      createdAt: EventTable.createdAt,
       "cart.id": totalPriceInEvent$.cartId,
       "cart.price": totalPriceInEvent$.total,
-      "cart.paymentStatus": OrderCartTable.paymentStatus,
-      "cart.paymentAt": OrderCartTable.paymentAt,
-      "cart.paymentConfirmationAt": OrderCartTable.paymentConfirmationAt,
+      "cart.paymentStatus": CartTable.paymentStatus,
+      "cart.paymentAt": CartTable.paymentAt,
+      "cart.paymentConfirmationAt": CartTable.paymentConfirmationAt,
     })
     .from(totalPriceInEvent$)
-    .innerJoin(
-      OrderEventTable,
-      eq(totalPriceInEvent$.eventId, OrderEventTable.id),
-    )
+    .innerJoin(EventTable, eq(totalPriceInEvent$.eventId, EventTable.id))
     .leftJoin(
-      OrderCartTable,
-      and(
-        eq(OrderCartTable.eventId, OrderEventTable.id),
-        eq(OrderCartTable.clerkId, clerkId),
-      ),
+      CartTable,
+      and(eq(CartTable.eventId, EventTable.id), eq(CartTable.clerkId, clerkId)),
     )
     .orderBy((table) => [desc(table.status), desc(table.createdAt)])
     .limit(limit)

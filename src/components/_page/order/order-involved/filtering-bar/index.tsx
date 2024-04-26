@@ -15,3 +15,5 @@ const FilteringBar = () => {
     </div>
   );
 };
+
+export default FilteringBar;

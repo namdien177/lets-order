@@ -1,7 +1,6 @@
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 import {
-  PaginationParams,
   type SafePaginationParams,
   type UnSafePaginationParams,
 } from "@/lib/types/pagination.types";

@@ -1,12 +1,12 @@
 import { createDbTable } from "@/server/db/schema/_core";
 import { index, integer, text } from "drizzle-orm/sqlite-core";
 import { relations, sql } from "drizzle-orm";
-import { OrderEventProductTable } from "@/server/db/schema/order-event-product";
+import { EventProductTable } from "@/server/db/schema/event-product";
 import { ORDER_EVENT_STATUS, ORDER_PAYMENT_STATUS } from "@/server/db/constant";
-import { OrderCartTable } from "@/server/db/schema/order-cart";
+import { CartTable } from "@/server/db/schema/cart";
 
-export const OrderEventTable = createDbTable(
-  "order_events",
+export const EventTable = createDbTable(
+  "events",
   {
     id: integer("id", { mode: "number" }).primaryKey({ autoIncrement: true }),
     code: text("code").notNull(),
@@ -33,9 +33,9 @@ export const OrderEventTable = createDbTable(
   }),
 );
 
-export const OrderEventRelations = relations(OrderEventTable, ({ many }) => ({
-  menu: many(OrderEventProductTable),
-  carts: many(OrderCartTable),
+export const EventRelations = relations(EventTable, ({ many }) => ({
+  menu: many(EventProductTable),
+  carts: many(CartTable),
 }));
 
-export type OrderEvent = typeof OrderEventTable.$inferSelect;
+export type Event = typeof EventTable.$inferSelect;

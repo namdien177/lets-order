@@ -28,7 +28,7 @@ const LayoutManageOrder = async ({ children, params }: LayoutProps) => {
     redirect("/sign-in");
   }
 
-  const ownerEvent = await db.query.OrderEventTable.findFirst({
+  const ownerEvent = await db.query.EventTable.findFirst({
     where: (table, { and, eq }) =>
       and(eq(table.id, eventId), eq(table.clerkId, userId)),
   });

@@ -11,11 +11,7 @@ import {
   type SuccessResponseData,
 } from "@/lib/types/response.type";
 import { ORDER_PAYMENT_STATUS } from "@/server/db/constant";
-import {
-  type OrderCart,
-  OrderCartTable,
-  OrderEventTable,
-} from "@/server/db/schema";
+import { type Cart, CartTable, EventTable } from "@/server/db/schema";
 import { and, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
@@ -33,19 +29,19 @@ export const markUserCartCompletePayment = async ({
 
   const [userCart] = await db
     .select({
-      id: OrderCartTable.id,
-      eventId: OrderCartTable.eventId,
-      eventStatus: OrderEventTable.status,
-      eventPaymentStatus: OrderEventTable.paymentStatus,
-      paymentStatus: OrderCartTable.paymentStatus,
+      id: CartTable.id,
+      eventId: CartTable.eventId,
+      eventStatus: EventTable.status,
+      eventPaymentStatus: EventTable.paymentStatus,
+      paymentStatus: CartTable.paymentStatus,
     })
-    .from(OrderCartTable)
-    .innerJoin(OrderEventTable, eq(OrderCartTable.eventId, OrderEventTable.id))
+    .from(CartTable)
+    .innerJoin(EventTable, eq(CartTable.eventId, EventTable.id))
     .where(
       and(
-        eq(OrderCartTable.id, cartId),
+        eq(CartTable.id, cartId),
         // must be the owner to mark the payment complete
-        eq(OrderEventTable.clerkId, userId),
+        eq(EventTable.clerkId, userId),
       ),
     );
 
@@ -68,7 +64,7 @@ export const markUserCartCompletePayment = async ({
   if (cartWasNotPaid && force) {
     const updatedCart = await db.transaction(async (tx) => {
       const [updatedCustomerCartPayment] = await tx
-        .update(OrderCartTable)
+        .update(CartTable)
         .set({
           paymentStatus: ORDER_PAYMENT_STATUS.PAID,
           paymentAt: new Date(),
@@ -76,8 +72,8 @@ export const markUserCartCompletePayment = async ({
         })
         .where(
           and(
-            eq(OrderCartTable.id, cartId),
-            eq(OrderCartTable.eventId, userCart.eventId),
+            eq(CartTable.id, cartId),
+            eq(CartTable.eventId, userCart.eventId),
           ),
         )
         .returning();
@@ -102,20 +98,17 @@ export const markUserCartCompletePayment = async ({
       type: BaseResponseType.success,
       data: updatedCart,
       message: "Cart payment marked as paid",
-    } as SuccessResponseData<OrderCart>;
+    } as SuccessResponseData<Cart>;
   }
 
   const updatedCart = await db.transaction(async (tx) => {
     const [updatedCustomerCartPayment] = await tx
-      .update(OrderCartTable)
+      .update(CartTable)
       .set({
         paymentConfirmationAt: new Date(),
       })
       .where(
-        and(
-          eq(OrderCartTable.id, cartId),
-          eq(OrderCartTable.eventId, userCart.eventId),
-        ),
+        and(eq(CartTable.id, cartId), eq(CartTable.eventId, userCart.eventId)),
       )
       .returning();
 
@@ -139,5 +132,5 @@ export const markUserCartCompletePayment = async ({
     type: BaseResponseType.success,
     data: updatedCart,
     message: "Cart payment marked as paid",
-  } as SuccessResponseData<OrderCart>;
+  } as SuccessResponseData<Cart>;
 };

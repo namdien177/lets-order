@@ -2,11 +2,11 @@ import { createDbTable } from "@/server/db/schema/_core";
 import { integer, text, unique } from "drizzle-orm/sqlite-core";
 import { relations, sql } from "drizzle-orm";
 import { ProductTable } from "@/server/db/schema/product";
-import { OrderEventTable } from "@/server/db/schema/order-event";
-import { OrderItemTable } from "@/server/db/schema/order-item";
+import { EventTable } from "@/server/db/schema/event";
+import { CartItemTable } from "@/server/db/schema/cart-item";
 
-export const OrderEventProductTable = createDbTable(
-  "order_event_products",
+export const EventProductTable = createDbTable(
+  "event_products",
   {
     id: integer("id", { mode: "number" }).primaryKey({ autoIncrement: true }),
     productId: integer("product_id", { mode: "number" }).notNull(),
@@ -20,19 +20,19 @@ export const OrderEventProductTable = createDbTable(
   }),
 );
 
-export const OrderEventProductRelations = relations(
-  OrderEventProductTable,
+export const EventProductRelations = relations(
+  EventProductTable,
   ({ one, many }) => ({
     product: one(ProductTable, {
-      fields: [OrderEventProductTable.productId],
+      fields: [EventProductTable.productId],
       references: [ProductTable.id],
     }),
-    event: one(OrderEventTable, {
-      fields: [OrderEventProductTable.eventId],
-      references: [OrderEventTable.id],
+    event: one(EventTable, {
+      fields: [EventProductTable.eventId],
+      references: [EventTable.id],
     }),
-    inCarts: many(OrderItemTable),
+    inCarts: many(CartItemTable),
   }),
 );
 
-export type OrderEventProduct = typeof OrderEventProductTable.$inferSelect;
+export type EventProduct = typeof EventProductTable.$inferSelect;

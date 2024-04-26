@@ -12,11 +12,7 @@ import {
   type SuccessResponseData,
 } from "@/lib/types/response.type";
 import { db } from "@/server/db";
-import {
-  OrderCartTable,
-  OrderEventTable,
-  OrderItemTable,
-} from "@/server/db/schema";
+import { CartTable, EventTable, CartItemTable } from "@/server/db/schema";
 import { auth } from "@clerk/nextjs/server";
 import { and, eq, inArray } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
@@ -47,13 +43,11 @@ export const updateEventToStatus = async (event: EventStatusPayload) => {
   try {
     const updateSuccess = await db.transaction(async (tx) => {
       const updatedEvent = await tx
-        .update(OrderEventTable)
+        .update(EventTable)
         .set({
           status: newStatus,
         })
-        .where(
-          and(eq(OrderEventTable.id, id), eq(OrderEventTable.clerkId, userId)),
-        );
+        .where(and(eq(EventTable.id, id), eq(EventTable.clerkId, userId)));
 
       if (updatedEvent.rowsAffected === 0) {
         tx.rollback();
@@ -66,10 +60,10 @@ export const updateEventToStatus = async (event: EventStatusPayload) => {
 
       // clear carts
       const clearedCartIds = await tx
-        .delete(OrderCartTable)
-        .where(eq(OrderCartTable.eventId, id))
+        .delete(CartTable)
+        .where(eq(CartTable.eventId, id))
         .returning({
-          id: OrderCartTable.id,
+          id: CartTable.id,
         });
 
       if (clearedCartIds.length === 0) {
@@ -79,9 +73,9 @@ export const updateEventToStatus = async (event: EventStatusPayload) => {
       }
 
       // clear items
-      const result = await tx.delete(OrderItemTable).where(
+      const result = await tx.delete(CartItemTable).where(
         inArray(
-          OrderItemTable.cartId,
+          CartItemTable.cartId,
           clearedCartIds.map((cart) => cart.id),
         ),
       );

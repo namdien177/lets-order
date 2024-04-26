@@ -1,11 +1,64 @@
 {
   "version": "5",
   "dialect": "sqlite",
-  "id": "72eb60ac-d21a-4dd0-9574-ff0bd96f2ea2",
+  "id": "75ddacb2-5741-437f-a07b-24423c4ecd35",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
-    "lets-order_order_carts": {
-      "name": "lets-order_order_carts",
+    "lets_order_cart_items": {
+      "name": "lets_order_cart_items",
+      "columns": {
+        "cart_id": {
+          "name": "cart_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "order_event_product_id": {
+          "name": "order_event_product_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "amount": {
+          "name": "amount",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(CURRENT_TIMESTAMP)"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {
+        "lets_order_cart_items_cart_id_order_event_product_id_pk": {
+          "columns": [
+            "cart_id",
+            "order_event_product_id"
+          ],
+          "name": "lets_order_cart_items_cart_id_order_event_product_id_pk"
+        }
+      },
+      "uniqueConstraints": {}
+    },
+    "lets_order_carts": {
+      "name": "lets_order_carts",
       "columns": {
         "id": {
           "name": "id",
@@ -75,7 +128,7 @@
           "name": "created_at",
           "type": "text",
           "primaryKey": false,
-          "notNull": true,
+          "notNull": false,
           "autoincrement": false,
           "default": "(CURRENT_TIMESTAMP)"
         },
@@ -101,8 +154,55 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
-    "lets-order_order_events": {
-      "name": "lets-order_order_events",
+    "lets_order_event_products": {
+      "name": "lets_order_event_products",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "product_id": {
+          "name": "product_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "event_id": {
+          "name": "event_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(CURRENT_TIMESTAMP)"
+        }
+      },
+      "indexes": {
+        "menu_unique": {
+          "name": "menu_unique",
+          "columns": [
+            "product_id",
+            "event_id"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "lets_order_events": {
+      "name": "lets_order_events",
       "columns": {
         "id": {
           "name": "id",
@@ -191,108 +291,8 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
-    "lets-order_order_event_products": {
-      "name": "lets-order_order_event_products",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "integer",
-          "primaryKey": true,
-          "notNull": true,
-          "autoincrement": true
-        },
-        "product_id": {
-          "name": "product_id",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "event_id": {
-          "name": "event_id",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": "(CURRENT_TIMESTAMP)"
-        }
-      },
-      "indexes": {
-        "menu_unique": {
-          "name": "menu_unique",
-          "columns": [
-            "product_id",
-            "event_id"
-          ],
-          "isUnique": true
-        }
-      },
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
-    },
-    "lets-order_order_items": {
-      "name": "lets-order_order_items",
-      "columns": {
-        "cart_id": {
-          "name": "cart_id",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "order_event_product_id": {
-          "name": "order_event_product_id",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "amount": {
-          "name": "amount",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": "(CURRENT_TIMESTAMP)"
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {},
-      "compositePrimaryKeys": {
-        "lets-order_order_items_cart_id_order_event_product_id_pk": {
-          "columns": [
-            "cart_id",
-            "order_event_product_id"
-          ],
-          "name": "lets-order_order_items_cart_id_order_event_product_id_pk"
-        }
-      },
-      "uniqueConstraints": {}
-    },
-    "lets-order_products": {
-      "name": "lets-order_products",
+    "lets_order_products": {
+      "name": "lets_order_products",
       "columns": {
         "id": {
           "name": "id",

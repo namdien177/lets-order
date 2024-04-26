@@ -2,11 +2,11 @@ import { createDbTable } from "@/server/db/schema/_core";
 import { integer, text, unique } from "drizzle-orm/sqlite-core";
 import { relations, sql } from "drizzle-orm";
 import { ORDER_PAYMENT_STATUS } from "@/server/db/constant";
-import { OrderEventTable } from "@/server/db/schema/order-event";
-import { OrderItemTable } from "@/server/db/schema/order-item";
+import { EventTable } from "@/server/db/schema/event";
+import { CartItemTable } from "@/server/db/schema/cart-item";
 
-export const OrderCartTable = createDbTable(
-  "order_carts",
+export const CartTable = createDbTable(
+  "carts",
   {
     id: integer("id", { mode: "number" }).primaryKey({ autoIncrement: true }),
     clerkId: text("clerk_id").notNull(),
@@ -23,9 +23,7 @@ export const OrderCartTable = createDbTable(
     })
       .notNull()
       .default(ORDER_PAYMENT_STATUS.PENDING),
-    createdAt: text("created_at")
-      .default(sql`(CURRENT_TIMESTAMP)`)
-      .notNull(),
+    createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`),
     updatedAt: text("updated_at"),
   },
   (table) => ({
@@ -33,15 +31,12 @@ export const OrderCartTable = createDbTable(
   }),
 );
 
-export const OrderCartRelations = relations(
-  OrderCartTable,
-  ({ one, many }) => ({
-    event: one(OrderEventTable, {
-      fields: [OrderCartTable.eventId],
-      references: [OrderEventTable.id],
-    }),
-    itemsInCart: many(OrderItemTable),
+export const CartRelations = relations(CartTable, ({ one, many }) => ({
+  event: one(EventTable, {
+    fields: [CartTable.eventId],
+    references: [EventTable.id],
   }),
-);
+  itemsInCart: many(CartItemTable),
+}));
 
-export type OrderCart = typeof OrderCartTable.$inferSelect;
+export type Cart = typeof CartTable.$inferSelect;

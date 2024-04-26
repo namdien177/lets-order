@@ -3,10 +3,10 @@
 import { db } from "@/server/db";
 import { and, asc, count, desc, eq, like, or, sql, sum } from "drizzle-orm";
 import {
-  OrderCartTable,
-  OrderEventProductTable,
-  OrderEventTable,
-  OrderItemTable,
+  CartTable,
+  EventProductTable,
+  EventTable,
+  CartItemTable,
   ProductTable,
 } from "@/server/db/schema";
 import { auth, clerkClient } from "@clerk/nextjs/server";
@@ -46,26 +46,23 @@ export const getEventParticipantStats = async (eventId: number) => {
 
   const cartInformation$ = db
     .select({
-      cartId: OrderCartTable.id,
-      eventId: OrderCartTable.eventId,
-      clerkId: OrderCartTable.clerkId,
-      paymentStatus: OrderCartTable.paymentStatus,
-      paymentConfirmationAt: OrderCartTable.paymentConfirmationAt,
-      amount: sum(OrderItemTable.amount).as("amount"),
-      totalPrice: sql`sum(${ProductTable.price} * ${OrderItemTable.amount})`
+      cartId: CartTable.id,
+      eventId: CartTable.eventId,
+      clerkId: CartTable.clerkId,
+      paymentStatus: CartTable.paymentStatus,
+      paymentConfirmationAt: CartTable.paymentConfirmationAt,
+      amount: sum(CartItemTable.amount).as("amount"),
+      totalPrice: sql`sum(${ProductTable.price} * ${CartItemTable.amount})`
         .mapWith(Number)
         .as("totalPrice"),
     })
-    .from(OrderCartTable)
-    .innerJoin(OrderItemTable, eq(OrderCartTable.id, OrderItemTable.cartId))
+    .from(CartTable)
+    .innerJoin(CartItemTable, eq(CartTable.id, CartItemTable.cartId))
     .innerJoin(
-      OrderEventProductTable,
-      eq(OrderItemTable.orderEventProductId, OrderEventProductTable.id),
+      EventProductTable,
+      eq(CartItemTable.orderEventProductId, EventProductTable.id),
     )
-    .innerJoin(
-      ProductTable,
-      eq(OrderEventProductTable.productId, ProductTable.id),
-    )
+    .innerJoin(ProductTable, eq(EventProductTable.productId, ProductTable.id))
     .groupBy((table) => table.cartId)
     .as("cartInformation$");
 
@@ -101,26 +98,20 @@ export const getEventParticipantStats = async (eventId: number) => {
 
   const [eventInfo] = await db
     .select({
-      id: OrderEventTable.id,
-      name: OrderEventTable.name,
-      clerkId: OrderEventTable.clerkId,
-      paymentStatus: OrderEventTable.paymentStatus,
-      paymentAt: OrderEventTable.paymentAt,
-      status: OrderEventTable.status,
+      id: EventTable.id,
+      name: EventTable.name,
+      clerkId: EventTable.clerkId,
+      paymentStatus: EventTable.paymentStatus,
+      paymentAt: EventTable.paymentAt,
+      status: EventTable.status,
       "statistics.totalParticipants": totalParticipants$.totalParticipants,
       "statistics.totalPrice": totalParticipants$.totalPrice,
       "statistics.paidParticipants": cartPaymentStatus$.paidCount,
       "statistics.pendingParticipants": cartPaymentStatus$.pendingCount,
     })
-    .from(OrderEventTable)
-    .leftJoin(
-      totalParticipants$,
-      eq(OrderEventTable.id, totalParticipants$.eventId),
-    )
-    .leftJoin(
-      cartPaymentStatus$,
-      eq(OrderEventTable.id, cartPaymentStatus$.eventId),
-    )
+    .from(EventTable)
+    .leftJoin(totalParticipants$, eq(EventTable.id, totalParticipants$.eventId))
+    .leftJoin(cartPaymentStatus$, eq(EventTable.id, cartPaymentStatus$.eventId))
     .where((table) => and(eq(table.id, eventId), eq(table.clerkId, userId)));
 
   return eventInfo
@@ -176,25 +167,22 @@ export const getUserCartInEvent = async ({
 
   const cartMatchingFilter$ = db
     .selectDistinct({
-      cartId: OrderCartTable.id,
+      cartId: CartTable.id,
     })
-    .from(OrderCartTable)
-    .innerJoin(OrderItemTable, eq(OrderCartTable.id, OrderItemTable.cartId))
+    .from(CartTable)
+    .innerJoin(CartItemTable, eq(CartTable.id, CartItemTable.cartId))
     .innerJoin(
-      OrderEventProductTable,
-      eq(OrderItemTable.orderEventProductId, OrderEventProductTable.id),
+      EventProductTable,
+      eq(CartItemTable.orderEventProductId, EventProductTable.id),
     )
-    .innerJoin(
-      ProductTable,
-      eq(OrderEventProductTable.productId, ProductTable.id),
-    )
+    .innerJoin(ProductTable, eq(EventProductTable.productId, ProductTable.id))
     .where(
       and(
-        eq(OrderCartTable.eventId, eventId),
+        eq(CartTable.eventId, eventId),
         keyword
           ? or(
-              like(OrderCartTable.clerkName, `%${keyword}%`),
-              like(OrderCartTable.clerkEmail, `%${keyword}%`),
+              like(CartTable.clerkName, `%${keyword}%`),
+              like(CartTable.clerkEmail, `%${keyword}%`),
               like(ProductTable.name, `%${keyword}%`),
               like(ProductTable.description, `%${keyword}%`),
             )
@@ -206,39 +194,33 @@ export const getUserCartInEvent = async ({
   const prebuiltPaginatedCartTable$ = db
     .select({
       cartId: cartMatchingFilter$.cartId,
-      clerkName: OrderCartTable.clerkName,
-      clerkEmail: OrderCartTable.clerkEmail,
+      clerkName: CartTable.clerkName,
+      clerkEmail: CartTable.clerkEmail,
       // '0' for 'pending', '1' for 'paid
       paymentStatus:
-        sql<number>`case when ${OrderCartTable.paymentStatus} = ${ORDER_PAYMENT_STATUS.PAID} then 1 else 0 end`.as(
+        sql<number>`case when ${CartTable.paymentStatus} = ${ORDER_PAYMENT_STATUS.PAID} then 1 else 0 end`.as(
           "paymentStatus",
         ),
       paymentAt:
-        sql<number>`case when ${OrderCartTable.paymentAt} is not null then ${OrderCartTable.paymentAt} else 0 end`.as(
+        sql<number>`case when ${CartTable.paymentAt} is not null then ${CartTable.paymentAt} else 0 end`.as(
           `paymentAt`,
         ),
       cartPrice:
-        sql<number>`sum(${ProductTable.price} * ${OrderItemTable.amount})`.as(
+        sql<number>`sum(${ProductTable.price} * ${CartItemTable.amount})`.as(
           "cartPrice",
         ),
     })
     .from(cartMatchingFilter$)
-    .innerJoin(
-      OrderCartTable,
-      eq(OrderCartTable.id, cartMatchingFilter$.cartId),
-    )
+    .innerJoin(CartTable, eq(CartTable.id, cartMatchingFilter$.cartId))
     .leftJoin(
-      OrderItemTable,
-      eq(OrderItemTable.cartId, cartMatchingFilter$.cartId),
+      CartItemTable,
+      eq(CartItemTable.cartId, cartMatchingFilter$.cartId),
     )
     .innerJoin(
-      OrderEventProductTable,
-      eq(OrderItemTable.orderEventProductId, OrderEventProductTable.id),
+      EventProductTable,
+      eq(CartItemTable.orderEventProductId, EventProductTable.id),
     )
-    .innerJoin(
-      ProductTable,
-      eq(OrderEventProductTable.productId, ProductTable.id),
-    )
+    .innerJoin(ProductTable, eq(EventProductTable.productId, ProductTable.id))
     .groupBy((table) => [
       table.cartId,
       table.clerkName,
@@ -279,32 +261,26 @@ export const getUserCartInEvent = async ({
   const rawData = await db
     .select({
       id: paginatedCartTable$.cartId,
-      clerkId: OrderCartTable.clerkId,
-      clerkName: OrderCartTable.clerkName,
-      clerkEmail: OrderCartTable.clerkEmail,
-      paymentStatus: OrderCartTable.paymentStatus,
-      paymentAt: OrderCartTable.paymentAt,
-      paymentConfirmationAt: OrderCartTable.paymentConfirmationAt,
+      clerkId: CartTable.clerkId,
+      clerkName: CartTable.clerkName,
+      clerkEmail: CartTable.clerkEmail,
+      paymentStatus: CartTable.paymentStatus,
+      paymentAt: CartTable.paymentAt,
+      paymentConfirmationAt: CartTable.paymentConfirmationAt,
       "item.id": ProductTable.id,
       "item.name": ProductTable.name,
       "item.description": ProductTable.description,
       "item.price": ProductTable.price,
-      "item.amount": OrderItemTable.amount,
+      "item.amount": CartItemTable.amount,
     })
     .from(paginatedCartTable$)
+    .innerJoin(CartTable, eq(CartTable.id, paginatedCartTable$.cartId))
+    .innerJoin(CartItemTable, eq(CartItemTable.cartId, CartTable.id))
     .innerJoin(
-      OrderCartTable,
-      eq(OrderCartTable.id, paginatedCartTable$.cartId),
+      EventProductTable,
+      eq(CartItemTable.orderEventProductId, EventProductTable.id),
     )
-    .innerJoin(OrderItemTable, eq(OrderItemTable.cartId, OrderCartTable.id))
-    .innerJoin(
-      OrderEventProductTable,
-      eq(OrderItemTable.orderEventProductId, OrderEventProductTable.id),
-    )
-    .innerJoin(
-      ProductTable,
-      eq(OrderEventProductTable.productId, ProductTable.id),
-    );
+    .innerJoin(ProductTable, eq(EventProductTable.productId, ProductTable.id));
   const data = new Map<string, UserCartInEvent>();
 
   const [{ total } = { total: 0 }] = await db
@@ -397,12 +373,12 @@ export const getUserCartInEvent = async ({
         for (const { cartId, clerkName, clerkEmail } of updateCartInfo) {
           updatePromise.push(
             ctx
-              .update(OrderCartTable)
+              .update(CartTable)
               .set({
                 clerkName,
                 clerkEmail,
               })
-              .where(eq(OrderCartTable.id, cartId)),
+              .where(eq(CartTable.id, cartId)),
           );
         }
 

@@ -34,7 +34,7 @@ const EventMenu = ({ eventId, cart, onUpdated }: Props) => {
   const [searchKey, setSearchKey] = useState("");
   const { data } = useQuery({
     queryKey: ["product", searchKey, eventId],
-    queryFn: async () => getAllProductsInEvent({ id: eventId }, searchKey),
+    queryFn: () => getAllProductsInEvent({ id: eventId }, searchKey),
     enabled: searchKey.trim().length >= 3 || searchKey.trim().length === 0,
   });
 

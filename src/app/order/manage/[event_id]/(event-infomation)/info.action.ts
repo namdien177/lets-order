@@ -14,7 +14,7 @@ import {
   type SuccessResponseData,
 } from "@/lib/types/response.type";
 import { db } from "@/server/db";
-import { OrderEventTable } from "@/server/db/schema";
+import { EventTable } from "@/server/db/schema";
 import { and, eq, ne, or } from "drizzle-orm";
 import { ORDER_EVENT_STATUS } from "@/server/db/constant";
 import { revalidatePath } from "next/cache";
@@ -45,18 +45,18 @@ export const updateOrderEventInfo = async (
 
   try {
     const updatedEvent = await db
-      .update(OrderEventTable)
+      .update(EventTable)
       .set({
         name: payload.name.trim(),
       })
       .where(
         and(
-          eq(OrderEventTable.id, payload.id),
-          eq(OrderEventTable.clerkId, userId),
+          eq(EventTable.id, payload.id),
+          eq(EventTable.clerkId, userId),
           or(
-            ne(OrderEventTable.status, ORDER_EVENT_STATUS.COMPLETED),
-            ne(OrderEventTable.status, ORDER_EVENT_STATUS.LOCKED),
-            ne(OrderEventTable.status, ORDER_EVENT_STATUS.CANCELLED),
+            ne(EventTable.status, ORDER_EVENT_STATUS.COMPLETED),
+            ne(EventTable.status, ORDER_EVENT_STATUS.LOCKED),
+            ne(EventTable.status, ORDER_EVENT_STATUS.CANCELLED),
           ),
         ),
       );

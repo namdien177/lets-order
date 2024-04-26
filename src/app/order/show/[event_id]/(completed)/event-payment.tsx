@@ -1,5 +1,5 @@
 import EventPaidBtn from "./event-paid.btn";
-import { type OrderEvent } from "@/server/db/schema";
+import { type Event } from "@/server/db/schema";
 import { formatAsMoney } from "@/lib/utils";
 import { Info } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -8,11 +8,11 @@ import { format } from "date-fns";
 import { type QueryUserCartReturn } from "@/app/order/show/[event_id]/query";
 
 type Props = {
-  event: OrderEvent;
+  event: Event;
   cart: QueryUserCartReturn;
 };
 
-const EventPaymentInfo = async ({ event, cart }: Props) => {
+const EventPaymentInfo = async ({ cart }: Props) => {
   const totalPrice = cart.items.reduce((acc, item) => acc + item.price, 0);
 
   return (

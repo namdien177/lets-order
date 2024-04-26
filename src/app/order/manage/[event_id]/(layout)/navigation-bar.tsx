@@ -1,8 +1,8 @@
-import { type OrderEvent } from "@/server/db/schema";
+import { type Event } from "@/server/db/schema";
 import NavigationItem from "@/app/order/manage/[event_id]/(layout)/navigation-item";
 
 type Props = {
-  event: OrderEvent;
+  event: Event;
 };
 
 const ManageNavigationBar = ({ event }: Props) => {

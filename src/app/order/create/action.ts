@@ -2,7 +2,7 @@
 
 import { type OrderEventPayload } from "@/app/order/create/schema";
 import { db } from "@/server/db";
-import { OrderEventProductTable, OrderEventTable } from "@/server/db/schema";
+import { EventProductTable, EventTable } from "@/server/db/schema";
 import { generateRandomString } from "@/lib/utils";
 import {
   BaseResponseType,
@@ -13,7 +13,7 @@ import {
 export const createOrderEvent = async (payload: OrderEventPayload) => {
   const createdOrder = await db.transaction(async (tx) => {
     const [orderEvent] = await tx
-      .insert(OrderEventTable)
+      .insert(EventTable)
       .values({
         code: generateRandomString(12),
         clerkId: payload.clerkId,
@@ -29,7 +29,7 @@ export const createOrderEvent = async (payload: OrderEventPayload) => {
     }
 
     const productsInEvent = await tx
-      .insert(OrderEventProductTable)
+      .insert(EventProductTable)
       .values(
         payload.items.map((item) => ({
           eventId: orderEvent.id,

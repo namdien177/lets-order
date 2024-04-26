@@ -1,8 +1,8 @@
 import { db } from "@/server/db";
 import {
-  OrderCartTable,
-  OrderEventProductTable,
-  OrderItemTable,
+  CartTable,
+  EventProductTable,
+  CartItemTable,
   ProductTable,
 } from "@/server/db/schema";
 import { and, eq, gt } from "drizzle-orm";
@@ -13,38 +13,29 @@ export const queryItemsFromCarts = async (
 ): Promise<ItemsFromCartsQuery[]> => {
   return db
     .select({
-      "product.id": OrderEventProductTable.productId,
+      "product.id": EventProductTable.productId,
       "product.name": ProductTable.name,
       "product.description": ProductTable.description,
       "product.price": ProductTable.price,
-      clerkId: OrderCartTable.clerkId,
-      eventId: OrderEventProductTable.eventId,
-      cartId: OrderCartTable.id,
-      paymentAt: OrderCartTable.paymentAt,
-      paymentStatus: OrderCartTable.paymentStatus,
-      confirmationAt: OrderCartTable.paymentConfirmationAt,
-      amount: OrderItemTable.amount,
+      clerkId: CartTable.clerkId,
+      eventId: EventProductTable.eventId,
+      cartId: CartTable.id,
+      paymentAt: CartTable.paymentAt,
+      paymentStatus: CartTable.paymentStatus,
+      confirmationAt: CartTable.paymentConfirmationAt,
+      amount: CartItemTable.amount,
     })
-    .from(OrderEventProductTable)
+    .from(EventProductTable)
+    .innerJoin(CartTable, eq(CartTable.eventId, EventProductTable.eventId))
     .innerJoin(
-      OrderCartTable,
-      eq(OrderCartTable.eventId, OrderEventProductTable.eventId),
-    )
-    .innerJoin(
-      OrderItemTable,
+      CartItemTable,
       and(
-        eq(OrderItemTable.orderEventProductId, OrderEventProductTable.id),
-        eq(OrderItemTable.cartId, OrderCartTable.id),
+        eq(CartItemTable.orderEventProductId, EventProductTable.id),
+        eq(CartItemTable.cartId, CartTable.id),
       ),
     )
-    .innerJoin(
-      ProductTable,
-      eq(ProductTable.id, OrderEventProductTable.productId),
-    )
+    .innerJoin(ProductTable, eq(ProductTable.id, EventProductTable.productId))
     .where(
-      and(
-        eq(OrderEventProductTable.eventId, eventId),
-        gt(OrderItemTable.amount, 0),
-      ),
+      and(eq(EventProductTable.eventId, eventId), gt(CartItemTable.amount, 0)),
     );
 };

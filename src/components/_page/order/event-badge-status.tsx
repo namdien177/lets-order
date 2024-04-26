@@ -1,10 +1,10 @@
-import { type OrderEvent } from "@/server/db/schema";
+import { type Event } from "@/server/db/schema";
 import { ORDER_EVENT_STATUS } from "@/server/db/constant";
 import { Badge, type BadgeProps } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
 type Props = BadgeProps & {
-  data: Pick<OrderEvent, "status">;
+  data: Pick<Event, "status">;
 };
 
 const EventBadgeStatus = ({

@@ -1,7 +1,7 @@
 import { createDbTable } from "@/server/db/schema/_core";
 import { integer, text } from "drizzle-orm/sqlite-core";
 import { relations, sql } from "drizzle-orm";
-import { OrderEventProductTable } from "@/server/db/schema/order-event-product";
+import { EventProductTable } from "@/server/db/schema/event-product";
 
 export const ProductTable = createDbTable("products", {
   id: integer("id").primaryKey({ autoIncrement: true }),
@@ -24,7 +24,7 @@ export const ProductTableRelations = relations(
       fields: [ProductTable.previousVersionId],
       references: [ProductTable.id],
     }),
-    events: many(OrderEventProductTable),
+    events: many(EventProductTable),
   }),
 );
 

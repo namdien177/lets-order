@@ -10,7 +10,7 @@ import {
   type ServerErrorResponse,
   type SuccessResponseData,
 } from "@/lib/types/response.type";
-import { type OrderCart, OrderCartTable } from "@/server/db/schema";
+import { type Cart, CartTable } from "@/server/db/schema";
 import { and, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
@@ -22,7 +22,7 @@ export const markOrderAsPaid = async ({ cartId }: Props) => {
   const { userId } = auth();
   assertAsType<string>(userId);
 
-  const findTheCart = await db.query.OrderCartTable.findFirst({
+  const findTheCart = await db.query.CartTable.findFirst({
     where: (table, { and, isNull, eq }) =>
       and(
         eq(table.id, cartId),
@@ -41,14 +41,12 @@ export const markOrderAsPaid = async ({ cartId }: Props) => {
 
   const updatedValue = await db.transaction(async (tx) => {
     const [result] = await tx
-      .update(OrderCartTable)
+      .update(CartTable)
       .set({
         paymentStatus: ORDER_PAYMENT_STATUS.PAID,
         paymentAt: new Date(),
       })
-      .where(
-        and(eq(OrderCartTable.id, cartId), eq(OrderCartTable.clerkId, userId)),
-      )
+      .where(and(eq(CartTable.id, cartId), eq(CartTable.clerkId, userId)))
       .returning();
 
     if (!result) {
@@ -72,5 +70,5 @@ export const markOrderAsPaid = async ({ cartId }: Props) => {
     data: {
       id: updatedValue.id,
     },
-  } as SuccessResponseData<Pick<OrderCart, "id">>;
+  } as SuccessResponseData<Pick<Cart, "id">>;
 };
