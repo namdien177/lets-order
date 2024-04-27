@@ -1,6 +1,6 @@
 import { createDbTable } from "@/server/db/schema/_core";
 import { integer, text } from "drizzle-orm/sqlite-core";
-import { sql } from "drizzle-orm";
+import { relations, sql } from "drizzle-orm";
 import { dateToDB } from "@/server/db/helper";
 
 export const UserTable = createDbTable("users", {
@@ -11,6 +11,8 @@ export const UserTable = createDbTable("users", {
   createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`),
   updatedAt: text("updated_at").$onUpdateFn(() => dateToDB(new Date())),
 });
+
+export const UserRelations = relations(UserTable, () => ({}));
 
 export type User = typeof UserTable.$inferSelect;
 export type UserInsert = typeof UserTable.$inferInsert;

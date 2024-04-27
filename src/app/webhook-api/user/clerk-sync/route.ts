@@ -1,6 +1,6 @@
 import "server-only";
 import { type User } from "@clerk/backend";
-import { type UserInsert, UserTable } from "@/server/db/schema/user";
+import { type UserInsert, UserTable } from "@/server/db/schema";
 import { db } from "@/server/db";
 import { Webhook } from "svix";
 import { env } from "@/env";
@@ -57,6 +57,24 @@ export const POST = async (request: Request) => {
     }
 
     if (eventInfo.type === "user.updated") {
+      const foundUser = await findLocalUser(eventInfo.data.id);
+
+      if (!foundUser) {
+        // try to insert in case of the old user
+        const insertResult = await insertNewClerkUser(eventInfo.data, {
+          email: userEmail,
+          display_name: displayName,
+        });
+        if (insertResult) {
+          console.log(
+            `[Webhook] New clerk user "${userEmail ?? displayName}" inserted`,
+          );
+
+          return new Response("OK", { status: 200 });
+        }
+        return new Response("Failed to insert new clerk user", { status: 500 });
+      }
+
       const updateResult = await updateClerkUser(eventInfo.data, {
         email: userEmail,
         display_name: displayName,
@@ -72,6 +90,12 @@ export const POST = async (request: Request) => {
       return new Response("Failed to update clerk user", { status: 500 });
     }
   }
+};
+
+const findLocalUser = async (clerkId: string) => {
+  return db.query.UserTable.findFirst({
+    where: eq(UserTable.clerkId, clerkId),
+  });
 };
 
 const insertNewClerkUser = async (
