@@ -10,6 +10,7 @@ type Props = {
   href: string;
   exact?: true;
   className?: string;
+  disabled?: boolean;
 };
 
 const isHrefMatched = (href: string, pathname: string, exact?: true) => {
@@ -25,21 +26,33 @@ const NavigationItem = ({
   exact,
   className,
   children,
+  disabled,
 }: PropsWithChildren<Props>) => {
   const pathname = usePathname();
+  const baseClassName = buttonVariants({
+    variant: "ghost",
+    className: "relative font-medium text-muted-foreground hover:text-primary",
+  });
 
   const isMatched = isHrefMatched(href, pathname, exact);
 
+  if (disabled) {
+    return (
+      <span
+        className={cn(
+          baseClassName,
+          className,
+          "cursor-not-allowed bg-background hover:bg-background",
+        )}
+      >
+        {children}
+      </span>
+    );
+  }
+
   return (
     <Link
-      className={cn(
-        buttonVariants({
-          variant: "ghost",
-        }),
-        "relative font-medium text-muted-foreground hover:text-primary",
-        isMatched && "text-primary",
-        className,
-      )}
+      className={cn(baseClassName, isMatched && "text-primary", className)}
       href={href}
     >
       {children}

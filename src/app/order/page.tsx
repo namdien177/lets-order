@@ -15,6 +15,7 @@ import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import OrderInvolved from "@/components/_page/order/order-involved";
 import { extractPaginationParams } from "@/lib/utils";
+import NavigationItem from "@/components/_layout/inner-page/navigation-item";
 
 type PageProps = NextPageProps<Record<string, string>, QueryParamsWithSearch>;
 
@@ -27,7 +28,7 @@ const Page = async ({ searchParams: rawParams }: PageProps) => {
   }
 
   return (
-    <div className={"container mx-auto flex flex-col gap-8 px-4 py-8"}>
+    <div className={"container mx-auto flex flex-col gap-4 px-4 py-8"}>
       <div className="flex flex-col gap-8 sm:flex-row sm:items-center">
         <Breadcrumb className={"sm:flex-1"}>
           <BreadcrumbList>
@@ -56,6 +57,19 @@ const Page = async ({ searchParams: rawParams }: PageProps) => {
             Create <span className={"hidden md:inline"}>new order</span>
           </span>
         </Link>
+      </div>
+
+      <div
+        className={
+          "relative flex flex-nowrap gap-1 overflow-x-auto border-b py-2"
+        }
+      >
+        <NavigationItem href={`/order`} exact>
+          <span>Participated orders</span>
+        </NavigationItem>
+        <NavigationItem href={`/order/discover`} disabled>
+          <span>Discover</span>
+        </NavigationItem>
       </div>
 
       <div className={"flex flex-col gap-4"}>

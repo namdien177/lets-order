@@ -76,7 +76,10 @@ const OrderInvolved = ({ clerkId, initialQuery }: OrderInvolvedProps) => {
 
   return (
     <>
-      <div className="flex justify-end">
+      <div className="flex items-center justify-end">
+        <div className="flex-1">
+          <p>Total: {total}</p>
+        </div>
         <DebouncedInput
           className="w-full sm:w-64"
           placeholder="Search"
@@ -186,6 +189,14 @@ const OrderInvolved = ({ clerkId, initialQuery }: OrderInvolvedProps) => {
                     <div className="flex justify-center">
                       <Loader size={16} className={"animate-spin"} />
                     </div>
+                  </TableCell>
+                </TableRow>
+              )}
+
+              {!isLoading && orders.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={6} className={"text-center"}>
+                    No data available
                   </TableCell>
                 </TableRow>
               )}

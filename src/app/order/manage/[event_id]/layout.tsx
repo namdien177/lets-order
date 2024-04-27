@@ -11,7 +11,7 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { Home } from "lucide-react";
-import ManageNavigationBar from "@/app/order/manage/[event_id]/(layout)/navigation-bar";
+import NavigationItem from "@/components/_layout/inner-page/navigation-item";
 
 type LayoutProps = {
   children?: ReactNode;
@@ -68,8 +68,18 @@ const LayoutManageOrder = async ({ children, params }: LayoutProps) => {
         </BreadcrumbList>
       </Breadcrumb>
 
-      <ManageNavigationBar event={ownerEvent} />
-
+      <div
+        className={
+          "relative flex flex-nowrap gap-1 overflow-x-auto border-b py-2"
+        }
+      >
+        <NavigationItem href={`/order/manage/${ownerEvent.id}`} exact>
+          <span>Info</span>
+        </NavigationItem>
+        <NavigationItem href={`/order/manage/${ownerEvent.id}/participant`}>
+          <span>Participants</span>
+        </NavigationItem>
+      </div>
       {children}
     </div>
   );
