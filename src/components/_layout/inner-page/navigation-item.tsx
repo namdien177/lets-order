@@ -31,7 +31,8 @@ const NavigationItem = ({
   const pathname = usePathname();
   const baseClassName = buttonVariants({
     variant: "ghost",
-    className: "relative font-medium text-muted-foreground hover:text-primary",
+    className:
+      "relative font-medium text-muted-foreground hover:text-primary gap-2",
   });
 
   const isMatched = isHrefMatched(href, pathname, exact);

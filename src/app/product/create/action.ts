@@ -10,6 +10,7 @@ import {
 } from "@/lib/types/response.type";
 import { db } from "@/server/db";
 import { type Product, ProductTable } from "@/server/db/schema";
+import { revalidatePath } from "next/cache";
 
 export const createProductAction = async (payload: CreateProductPayload) => {
   const { userId } = auth();
@@ -36,6 +37,8 @@ export const createProductAction = async (payload: CreateProductPayload) => {
         error: "unable to create product",
       } as ServerErrorResponse;
     }
+
+    revalidatePath("/product");
 
     return {
       type: BaseResponseType.success,

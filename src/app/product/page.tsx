@@ -23,6 +23,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { searchOwnProduct } from "@/server/queries/product.query";
+import { Table, TableCell, TableHeader, TableRow } from "@/components/ui/table";
 
 type PageProps = NextPageProps<Record<string, string>, QueryParamsWithSearch>;
 
@@ -63,6 +64,9 @@ const Page = async ({ searchParams: rawParams }: PageProps) => {
         <div
           className={"flex flex-col gap-4 sm:flex-row sm:items-center sm:p-2"}
         >
+          <div
+            className={"h-[1px] w-full bg-accent sm:block sm:h-4 sm:w-[2px]"}
+          ></div>
           <div className="flex items-center gap-4">
             <Link
               href={"/product/create"}
@@ -71,10 +75,6 @@ const Page = async ({ searchParams: rawParams }: PageProps) => {
               Create
             </Link>
           </div>
-
-          <div
-            className={"h-[1px] w-full bg-accent sm:block sm:h-4 sm:w-[2px]"}
-          ></div>
         </div>
       </div>
 
@@ -84,6 +84,16 @@ const Page = async ({ searchParams: rawParams }: PageProps) => {
       </div>
 
       <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableCell>No.</TableCell>
+              <TableCell>Info</TableCell>
+              <TableCell>Used</TableCell>
+            </TableRow>
+          </TableHeader>
+        </Table>
+
         {data.map((product) => (
           <Card key={product.id} className="w-full sm:w-1/2 sm:max-w-80">
             <CardHeader className="pb-3">
