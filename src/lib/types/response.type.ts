@@ -43,7 +43,7 @@ export type AuthErrorResponse = {
 };
 
 export type InvalidErrorResponse<T = undefined> = {
-  type: typeof BaseResponseType.invalid;
+  type: typeof BaseResponseType.invalid | typeof BaseResponseType.forbidden;
   error: string;
   meta: T;
 };
