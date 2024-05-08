@@ -80,6 +80,7 @@ export const publicProfileAction = async (formData: FormData) => {
       .returning();
 
     if (result) {
+      revalidatePath("/");
       revalidatePath("/user");
 
       return {
