@@ -50,13 +50,14 @@ export default async function Page() {
 
       <PublicInformationForm
         defaultValues={{
+          avatar: localUser.clerkAvatar ?? user.imageUrl,
           displayName: localUser.displayName,
-          displayEmail: localUser.displayEmail,
+          isPublicEmail: !!localUser.displayEmail,
           firstName: localUser.firstName,
           lastName: localUser.lastName,
           primaryEmail: localUser.primaryEmail,
         }}
-        clerkAvatar={localUser.clerkAvatar ?? user.imageUrl}
+        clerkEmail={clerkEmail}
         clerkShortName={shortName ?? "User"}
       />
     </Card>
