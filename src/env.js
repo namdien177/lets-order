@@ -21,7 +21,17 @@ export const env = createEnv({
       .enum(["development", "test", "production"])
       .default("development"),
     CLERK_SECRET_KEY: z.string(),
-    WEBHOOK_SECRET_CLERK_USER: z.string(),
+    WEBHOOK_SECRET_CLERK_USER: z
+      .string()
+      .nullish()
+      .refine((value) => {
+        // if the NODE_ENV is not production, the webhook secret can be null
+        if (process.env.NODE_ENV !== "production") {
+          console.log("Webhook secret can be null in development");
+          return true;
+        }
+        return !!value;
+      }, "Webhook secret must not be null in production"),
     CLIENT_HOST: z.string().url(),
   },
   clientPrefix: "NEXT_PUBLIC_",

@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/breadcrumb";
 import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button";
-import { Home, Plus } from "lucide-react";
+import { Bolt, BookMarked, Globe, Home, Plus } from "lucide-react";
 import { type NextPageProps } from "@/lib/types/nextjs";
 import { type QueryParamsWithSearch } from "@/lib/types/pagination.types";
 import { auth } from "@clerk/nextjs/server";
@@ -65,10 +65,17 @@ const Page = async ({ searchParams: rawParams }: PageProps) => {
         }
       >
         <NavigationItem href={`/order`} exact>
+          <BookMarked size={16} />
           <span>Participated orders</span>
         </NavigationItem>
         <NavigationItem href={`/order/discover`} disabled>
+          <Globe size={16} />
           <span>Discover</span>
+        </NavigationItem>
+        <div className="flex-1"></div>
+        <NavigationItem href={`/order/manage`} disabled>
+          <Bolt size={16} />
+          <span>Manage</span>
         </NavigationItem>
       </div>
 

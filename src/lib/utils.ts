@@ -26,13 +26,12 @@ export type HrefMatchType = "exact" | "prefix";
 export function isMatchingPath(
   current: string,
   href: string,
-  matchType: HrefMatchType,
+  matchType?: HrefMatchType,
 ) {
   if (matchType === "exact") {
     return current === href;
-  } else {
-    return current.startsWith(href);
   }
+  return current.startsWith(href);
 }
 
 export function getEventStatusVerbose(status: number) {
@@ -52,7 +51,15 @@ export function getEventStatusVerbose(status: number) {
   }
 }
 
-export const getClerkPublicData = (clerkUser: User) => {
+export const getClerkPublicData = (
+  clerkUser: Pick<
+    User,
+    "username" | "primaryEmailAddressId" | "firstName" | "lastName"
+  > & {
+    emailAddresses: Array<{ id: string; emailAddress: string }>;
+  },
+) => {
+  let shortName: Nullable<string> = null;
   let clerkName: Nullable<string> =
     `${clerkUser.firstName ?? ""} ${clerkUser.lastName ?? ""}`.trim();
   if (clerkName.length === 0) {
@@ -61,6 +68,15 @@ export const getClerkPublicData = (clerkUser: User) => {
       clerkName = clerkUser.username;
     }
   }
+
+  if (clerkName && clerkName.length > 0) {
+    shortName = clerkName
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase();
+  }
+
   const clerkEmail: Nullable<string> =
     (clerkUser.primaryEmailAddressId
       ? clerkUser.emailAddresses.find(
@@ -68,7 +84,13 @@ export const getClerkPublicData = (clerkUser: User) => {
         )?.emailAddress
       : null) ?? null;
 
-  return { clerkName, clerkEmail };
+  return {
+    clerkName,
+    clerkEmail,
+    shortName,
+    firstName: clerkUser.firstName,
+    lastName: clerkUser.lastName,
+  };
 };
 
 export function extractPaginationParams(
