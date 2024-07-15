@@ -1,20 +1,26 @@
-import { type DayOrder, type OrderUser, type Product } from "../type";
-import { type PropsWithChildren, useMemo } from "react";
+"use client";
+
+import { type OrderUser } from "../type";
+import {
+  type HTMLAttributes,
+  type PropsWithChildren,
+  type TdHTMLAttributes,
+} from "react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
-
-type BoardTableProps = {
-  dayOrders: Array<DayOrder>;
-};
+import { useOrderBoard } from "@/store/order-board";
+import { type OrderCellState } from "@/store/order-board/store";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 const ROW_REM = 4;
+const INDEX_COL_WIDTH = 80;
+const DATE_COL_WIDTH = 150;
 
 const BoardTableIndexCols = () => {
   return (
     <>
-      <col className={"w-20"} />
-      <col className={"w-36"} />
+      <col style={{ width: `${INDEX_COL_WIDTH}px` }} />
+      <col style={{ width: `${DATE_COL_WIDTH}px` }} />
     </>
   );
 };
@@ -22,42 +28,45 @@ const BoardTableIndexCols = () => {
 const BoardTableIndexThs = ({ rowSpan = 2 }: { rowSpan?: number }) => {
   return (
     <>
-      <th rowSpan={rowSpan}>No.</th>
-      <th rowSpan={rowSpan}>Order Date</th>
+      <th
+        className={"sticky left-0 bg-background"}
+        rowSpan={rowSpan}
+        style={{
+          width: `${INDEX_COL_WIDTH}px`,
+        }}
+      >
+        No.
+      </th>
+      <th
+        className={"sticky bg-background"}
+        rowSpan={rowSpan}
+        style={{ width: `${DATE_COL_WIDTH}px`, left: `${INDEX_COL_WIDTH}px` }}
+      >
+        Order Date
+      </th>
     </>
   );
 };
 
 const BoardTableColgroup = ({ users }: { users: Array<OrderUser> }) => {
   return (
-    <colgroup>
+    <>
       {users.map((user) => (
         <col key={user.id} className={"w-52"} />
       ))}
-    </colgroup>
+    </>
   );
 };
 
-const BoardTableHeader = ({
-  users,
-  totalUsers,
-}: {
-  users: Array<OrderUser>;
-  totalUsers: number;
-}) => {
+const BoardTableHeaders = ({ users }: { users: Array<OrderUser> }) => {
   return (
-    <thead>
-      <BoardTableRow>
-        <th colSpan={totalUsers}>Users</th>
-      </BoardTableRow>
-      <BoardTableRow>
-        {users.map((user) => (
-          <th key={user.id} className={"truncate"}>
-            {user.name}
-          </th>
-        ))}
-      </BoardTableRow>
-    </thead>
+    <>
+      {users.map((user) => (
+        <th key={user.id} className={"truncate"}>
+          {user.name}
+        </th>
+      ))}
+    </>
   );
 };
 
@@ -65,9 +74,13 @@ const BoardTableRow = ({
   children,
   className,
   rowSpan = 1,
-}: PropsWithChildren<{ className?: string; rowSpan?: number }>) => {
+  ...others
+}: PropsWithChildren<
+  HTMLAttributes<HTMLTableRowElement> & { rowSpan?: number }
+>) => {
   return (
     <tr
+      {...others}
       className={cn("border-b border-t", className)}
       style={{
         height: `${rowSpan * ROW_REM}rem`,
@@ -78,93 +91,144 @@ const BoardTableRow = ({
   );
 };
 
-const BoardTable = ({ dayOrders }: BoardTableProps) => {
-  const { totalUsers, users, totalProducts } = useMemo(() => {
-    const userSet = new Map<string, OrderUser>();
-    const productSet = new Map<number, Product>();
+const BoardTableCell = ({
+  children,
+  cellData,
+  className,
+  ...props
+}: PropsWithChildren<
+  TdHTMLAttributes<HTMLTableCellElement> & {
+    cellData: OrderCellState;
+  }
+>) => {
+  const hoverFn = useOrderBoard((state) => state.hover);
+  const { isHoveredCell, isOnHoveredCol, isOnHoveredRow } = useOrderBoard(
+    (state) => {
+      const hoverState = state.hoveringOrder;
+      if (!hoverState?.date) return {};
 
-    for (const dayOrder of dayOrders) {
-      for (const order of dayOrder.orders) {
-        userSet.set(order.user.id, order.user);
-        for (const item of order.cart) {
-          productSet.set(item.product.id, item.product);
-        }
-      }
-    }
+      const isOnHoveredRow =
+        hoverState.date.getTime() === cellData.date.getTime();
+      const isOnHoveredCol = hoverState.user.id === cellData.user.id;
 
-    return {
-      totalUsers: userSet.size,
-      users: Array.from(userSet.values()),
-      totalProducts: productSet.size,
-    };
-  }, [dayOrders]);
+      return {
+        isHoveredCell: isOnHoveredRow && isOnHoveredCol,
+        isOnHoveredRow,
+        isOnHoveredCol,
+      };
+    },
+  );
 
   return (
-    <>
-      <table id={"table-index-cols"} className={"prose-base table-fixed"}>
-        <colgroup>
-          <BoardTableIndexCols />
-        </colgroup>
-        <thead>
-          <BoardTableRow rowSpan={2}>
-            <BoardTableIndexThs rowSpan={2} />
-          </BoardTableRow>
-        </thead>
-        <tbody>
-          {dayOrders.map((dayOrder, index) => {
-            const dayOrderDate = format(new Date(dayOrder.date), "yyyy-MM-dd");
+    <td
+      className={cn(
+        "border border-x-transparent bg-transparent",
+        {
+          "border-x-border": isHoveredCell,
+          "border-x-accent/30 bg-accent/30":
+            !!isOnHoveredRow || !!isOnHoveredCol,
+        },
+        className,
+      )}
+      onMouseEnter={() => hoverFn(cellData)}
+      {...props}
+    >
+      {children}
+    </td>
+  );
+};
 
-            return (
-              <BoardTableRow key={dayOrder.id}>
-                <td>{index + 1}</td>
-                <td>{dayOrderDate}</td>
-              </BoardTableRow>
-            );
-          })}
-        </tbody>
-      </table>
-      <ScrollArea className="flex-1 whitespace-nowrap">
-        <table
-          id={"table-content-cols"}
-          className={"prose-base w-full table-fixed"}
-        >
-          <BoardTableColgroup users={users} />
-          <BoardTableHeader users={users} totalUsers={totalUsers} />
-          <tbody>
-            {dayOrders.map((dayOrder, index) => {
-              return (
-                <BoardTableRow key={dayOrder.date}>
-                  {users.map((user) => {
-                    return (
-                      <td key={user.id}>
-                        {dayOrder.orders.map((order) => {
-                          if (order.user.id === user.id) {
-                            return (
-                              <div key={order.id} className={"overflow-hidden"}>
-                                hi
-                                {/*{order.cart.map((item) => {*/}
-                                {/*  return (*/}
-                                {/*    <div key={item.product.id}>*/}
-                                {/*      {item.quantity} x {item.product.name}*/}
-                                {/*    </div>*/}
-                                {/*  );*/}
-                                {/*})}*/}
-                              </div>
-                            );
-                          }
-                          return null;
-                        })}
-                      </td>
-                    );
-                  })}
-                </BoardTableRow>
-              );
-            })}
-          </tbody>
-        </table>
-        <ScrollBar orientation="horizontal" />
-      </ScrollArea>
-    </>
+const BoardTable = () => {
+  const users = useOrderBoard((state) => state.users);
+  const dayOrders = useOrderBoard((state) => state.data);
+  const hoverFn = useOrderBoard((state) => state.hover);
+  return (
+    <table
+      id={"table-content-cols"}
+      onMouseLeave={() => hoverFn(null)}
+      className={"w-full table-fixed"}
+    >
+      <colgroup>
+        <BoardTableIndexCols />
+        <BoardTableColgroup users={users} />
+      </colgroup>
+      <thead>
+        <BoardTableRow>
+          <BoardTableIndexThs rowSpan={2} />
+          <th colSpan={users.length}>Users</th>
+        </BoardTableRow>
+        <BoardTableRow>
+          <BoardTableHeaders users={users} />
+        </BoardTableRow>
+      </thead>
+      <tbody>
+        {dayOrders.map((dayOrder, index) => {
+          const orderDate = new Date(dayOrder.date);
+          const dayOrderDate = format(orderDate, "yyyy-MM-dd");
+
+          return (
+            <BoardTableRow key={dayOrder.date}>
+              <td
+                className={"sticky left-0 z-10 bg-background p-2 tabular-nums"}
+                style={{
+                  width: `${INDEX_COL_WIDTH}px`,
+                }}
+              >
+                {index + 1}
+              </td>
+              <td
+                className={
+                  "sticky z-10 border-r bg-background p-2 tabular-nums"
+                }
+                style={{
+                  left: `${INDEX_COL_WIDTH}px`,
+                  width: `${DATE_COL_WIDTH}px`,
+                }}
+              >
+                {dayOrderDate}
+              </td>
+
+              {users.map((orderUser, userIndex) => {
+                const key = `${orderUser.id}-${orderDate.toISOString()}`;
+
+                return (
+                  <BoardTableCell
+                    key={key}
+                    cellData={{
+                      user: orderUser,
+                      date: orderDate,
+                    }}
+                    className={cn(
+                      "overflow-hidden",
+                      userIndex === 0 ? "border-l" : undefined,
+                    )}
+                  >
+                    {dayOrder.orders.map((order) => {
+                      if (order.user.id === orderUser.id) {
+                        return (
+                          <div
+                            key={order.id}
+                            style={{ height: `${ROW_REM}rem` }}
+                            className={"flex flex-col overflow-hidden p-2"}
+                          >
+                            {order.cart.map((item) => (
+                              <small key={item.product.id}>
+                                {item.product.name} x {item.quantity}
+                              </small>
+                            ))}
+                          </div>
+                        );
+                      }
+                      return null;
+                    })}
+                  </BoardTableCell>
+                );
+              })}
+            </BoardTableRow>
+          );
+        })}
+      </tbody>
+    </table>
   );
 };
 
