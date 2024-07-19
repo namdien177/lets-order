@@ -10,7 +10,6 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { useOrderBoard } from "@/store/order-board";
 import { type OrderCellState } from "@/store/order-board/store";
-import { ScrollArea } from "@/components/ui/scroll-area";
 
 const ROW_REM = 4;
 const INDEX_COL_WIDTH = 80;
@@ -102,6 +101,12 @@ const BoardTableCell = ({
   }
 >) => {
   const hoverFn = useOrderBoard((state) => state.hover);
+  const focusFn = useOrderBoard((state) => state.focus);
+  const isFocused = useOrderBoard(
+    (state) =>
+      state.focusedOrder?.date === cellData.date &&
+      state.focusedOrder?.user.id === cellData.user.id,
+  );
   const { isHoveredCell, isOnHoveredCol, isOnHoveredRow } = useOrderBoard(
     (state) => {
       const hoverState = state.hoveringOrder;
@@ -122,15 +127,15 @@ const BoardTableCell = ({
   return (
     <td
       className={cn(
-        "border border-x-transparent bg-transparent",
-        {
-          "border-x-border": isHoveredCell,
-          "border-x-accent/30 bg-accent/30":
-            !!isOnHoveredRow || !!isOnHoveredCol,
-        },
+        "border-y bg-transparent",
+        (!!isOnHoveredRow || !!isOnHoveredCol) &&
+          "border-x-accent/30 bg-accent/30",
+        isHoveredCell && "border-x-border",
+        isFocused && "rounded-lg bg-accent text-accent-foreground",
         className,
       )}
       onMouseEnter={() => hoverFn(cellData)}
+      onClick={() => focusFn(cellData)}
       {...props}
     >
       {children}
@@ -146,7 +151,7 @@ const BoardTable = () => {
     <table
       id={"table-content-cols"}
       onMouseLeave={() => hoverFn(null)}
-      className={"w-full table-fixed"}
+      className={"w-full table-fixed border"}
     >
       <colgroup>
         <BoardTableIndexCols />
@@ -201,6 +206,7 @@ const BoardTable = () => {
                     className={cn(
                       "overflow-hidden",
                       userIndex === 0 ? "border-l" : undefined,
+                      userIndex === users.length - 1 ? "border-r" : undefined,
                     )}
                   >
                     {dayOrder.orders.map((order) => {

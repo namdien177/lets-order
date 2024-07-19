@@ -11,6 +11,8 @@ export type OrderBoardState = {
   products: Array<Product>;
   hoveringOrder: OrderCellState | null;
   focusedOrder: OrderCellState | null;
+  focusedDay: DayOrder | null;
+  focusedUser: OrderUser | null;
   isLoading: boolean;
   isError: boolean;
 };
@@ -23,8 +25,11 @@ export type OrderCellState = {
 export type OrderBoardAction = {
   fetchStatus: (status: { isLoading?: boolean; isError?: boolean }) => void;
   load: (data: Array<DayOrder>) => void;
+  refresh?: () => void;
   hover: (order: OrderCellState | null) => void;
   focus: (order: OrderCellState | null) => void;
+  focusDay: (day: DayOrder | null) => void;
+  focusUser: (user: OrderUser | null) => void;
   addUser: (payload: { user: OrderUser }) => void;
 };
 
@@ -36,6 +41,8 @@ export const InitialState: OrderBoardState = {
   products: [],
   hoveringOrder: null,
   focusedOrder: null,
+  focusedDay: null,
+  focusedUser: null,
   isLoading: true,
   isError: false,
 };
@@ -71,11 +78,16 @@ export const createOrderBoardStore = (
       });
     },
     hover: (hoveringOrder) => {
-      console.log(hoveringOrder);
       set({ hoveringOrder });
     },
     focus: (focusedOrder) => {
       set({ focusedOrder });
+    },
+    focusDay: (focusedDay) => {
+      set({ focusedDay });
+    },
+    focusUser: (focusedUser) => {
+      set({ focusedUser });
     },
     addUser: ({ user }) => {
       set((state) => {

@@ -6,6 +6,7 @@ import {
   type Product,
 } from "../type";
 import { faker } from "@faker-js/faker";
+import { add } from "date-fns";
 
 const mockUser = (): OrderUser => {
   return {
@@ -58,16 +59,11 @@ export const mockDayOrders = ({
 }: mockOpts): Array<DayOrder> => {
   const users = Array.from({ length: usersCount }, () => mockUser());
   let trackingDate = faker.date.recent({
-    days: 10,
+    days: 25,
   });
 
   return Array.from({ length: orderCount }, (_, index) => {
-    const updateDate = faker.date
-      .between({
-        from: trackingDate,
-        to: new Date(),
-      })
-      .toISOString();
+    const updateDate = add(trackingDate, { days: 1 }).toISOString();
     const amountOrderPerDay = faker.number.int({ min: 1, max: users.length });
 
     trackingDate = new Date(updateDate);
