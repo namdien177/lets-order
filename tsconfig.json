@@ -13,15 +13,18 @@
     "strict": true,
     "noUncheckedIndexedAccess": true,
     "checkJs": true,
+    "forceConsistentCasingInFileNames": true,
+    "strictNullChecks": true,
 
     /* Bundled projects */
     "lib": ["dom", "dom.iterable", "ES2022"],
     "noEmit": true,
-    "module": "ESNext",
+    "module": "ES2022",
     "moduleResolution": "Bundler",
     "jsx": "preserve",
     "plugins": [{ "name": "next" }],
     "incremental": true,
+    "types": ["bun-types"],
 
     /* Path Aliases */
     "baseUrl": ".",

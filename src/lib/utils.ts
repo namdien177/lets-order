@@ -4,10 +4,8 @@ import {
   type SafePaginationParams,
   type UnSafePaginationParams,
 } from "@/lib/types/pagination.types";
-import { type Nullable, type Nullish, type Optional } from "@/lib/types/helper";
+import { type Nullish, type Optional } from "@/lib/types/helper";
 import { z } from "zod";
-import { ORDER_EVENT_STATUS } from "@/server/db/constant";
-import { type User } from "@clerk/backend";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -33,65 +31,6 @@ export function isMatchingPath(
   }
   return current.startsWith(href);
 }
-
-export function getEventStatusVerbose(status: number) {
-  switch (status) {
-    case ORDER_EVENT_STATUS.CANCELLED:
-      return "cancelled";
-    case ORDER_EVENT_STATUS.DRAFT:
-      return "drafting";
-    case ORDER_EVENT_STATUS.ACTIVE:
-      return "active";
-    case ORDER_EVENT_STATUS.LOCKED:
-      return "locked";
-    case ORDER_EVENT_STATUS.COMPLETED:
-      return "completed";
-    default:
-      return "unknown";
-  }
-}
-
-export const getClerkPublicData = (
-  clerkUser: Pick<
-    User,
-    "username" | "primaryEmailAddressId" | "firstName" | "lastName"
-  > & {
-    emailAddresses: Array<{ id: string; emailAddress: string }>;
-  },
-) => {
-  let shortName: Nullable<string> = null;
-  let clerkName: Nullable<string> =
-    `${clerkUser.firstName ?? ""} ${clerkUser.lastName ?? ""}`.trim();
-  if (clerkName.length === 0) {
-    clerkName = null;
-    if (clerkUser.username) {
-      clerkName = clerkUser.username;
-    }
-  }
-
-  if (clerkName && clerkName.length > 0) {
-    shortName = clerkName
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .toUpperCase();
-  }
-
-  const clerkEmail: Nullable<string> =
-    (clerkUser.primaryEmailAddressId
-      ? clerkUser.emailAddresses.find(
-          (e) => e.id === clerkUser.primaryEmailAddressId,
-        )?.emailAddress
-      : null) ?? null;
-
-  return {
-    clerkName,
-    clerkEmail,
-    shortName,
-    firstName: clerkUser.firstName,
-    lastName: clerkUser.lastName,
-  };
-};
 
 export function extractPaginationParams(
   raw?: UnSafePaginationParams,

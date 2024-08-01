@@ -1,5 +1,5 @@
-import { type Event } from "@/server/db/schema";
-import { ORDER_EVENT_STATUS } from "@/server/db/constant";
+import { type Event } from "@/database/db/schema";
+import { ORDER_EVENT_STATUS } from "@/database/db/constant";
 import { Badge, type BadgeProps } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 

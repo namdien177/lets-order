@@ -34,8 +34,8 @@ import {
   PaginationNextButton,
   PaginationPreviousButton,
 } from "@/components/ui/pagination";
-import { ORDER_EVENT_STATUS } from "@/server/db/constant";
-import { dateFromDB } from "@/server/db/helper";
+import { ORDER_EVENT_STATUS } from "@/database/db/constant";
+import { dateFromDB } from "@/database/db/helper";
 
 const limit = 10;
 const MULTIPLE_PAGE_THRESHOLD = 5;

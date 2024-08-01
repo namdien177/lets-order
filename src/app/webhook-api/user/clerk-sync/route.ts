@@ -1,14 +1,14 @@
 import "server-only";
-import { UserTable } from "@/server/db/schema";
-import { db } from "@/server/db";
+import { UserTable } from "@/database/db/schema";
+import { db } from "@/database/db";
 import { Webhook } from "svix";
 import { env } from "@/env";
-import { verifyWebhook } from "@/server/webhook/helper";
+import { verifyWebhook } from "@/database/webhook/helper";
 import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { getClerkPublicData, isNullish } from "@/lib/utils";
-import { insertNewClerkUser } from "@/server/webhook/clerk-user/sync-user/insert-user";
-import { updateClerkUser } from "@/server/webhook/clerk-user/sync-user/update-user";
+import { insertNewClerkUser } from "@/database/webhook/clerk-user/sync-user/insert-user";
+import { updateClerkUser } from "@/database/webhook/clerk-user/sync-user/update-user";
 
 export const POST = async (request: Request) => {
   const whs = env.WEBHOOK_SECRET_CLERK_USER;

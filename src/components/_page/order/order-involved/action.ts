@@ -4,7 +4,7 @@ import type { PaginationParams } from "@/lib/types/pagination.types";
 import { auth } from "@clerk/nextjs/server";
 import { assertAsNonNullish, type Nullable } from "@/lib/types/helper";
 import { extractPaginationParams, isNullish } from "@/lib/utils";
-import { db } from "@/server/db";
+import { db } from "@/database/db";
 import {
   type Cart,
   CartItemTable,
@@ -13,7 +13,7 @@ import {
   EventProductTable,
   EventTable,
   ProductTable,
-} from "@/server/db/schema";
+} from "@/database/db/schema";
 import { and, count, desc, eq, like, or, sql } from "drizzle-orm";
 import { unflatten } from "flat";
 

@@ -1,5 +1,8 @@
 import { z } from "zod";
-import { ORDER_EVENT_STATUS, ORDER_PAYMENT_STATUS } from "@/server/db/constant";
+import {
+  ORDER_EVENT_STATUS,
+  ORDER_PAYMENT_STATUS,
+} from "@/database/db/constant";
 
 export const eventStatusSchema = z.array(
   z

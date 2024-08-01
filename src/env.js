@@ -9,6 +9,9 @@ export const env = createEnv({
    * isn't built with invalid env vars.
    */
   server: {
+    NODE_ENV: z
+      .enum(["development", "test", "production"])
+      .default("development"),
     DATABASE_URL: z
       .string()
       .url()
@@ -16,10 +19,9 @@ export const env = createEnv({
         (str) => !str.includes("YOUR_MYSQL_URL_HERE"),
         "You forgot to change the default URL",
       ),
-    DATABASE_TOKEN: z.string(),
-    NODE_ENV: z
-      .enum(["development", "test", "production"])
-      .default("development"),
+    APP_SECRET: z.string(),
+    APP_URL: z.string().url(),
+    // CLERK
     CLERK_SECRET_KEY: z.string(),
     WEBHOOK_SECRET_CLERK_USER: z
       .string()
@@ -32,7 +34,6 @@ export const env = createEnv({
         }
         return !!value;
       }, "Webhook secret must not be null in production"),
-    CLIENT_HOST: z.string().url(),
   },
   clientPrefix: "NEXT_PUBLIC_",
   /**
@@ -42,8 +43,6 @@ export const env = createEnv({
    */
   client: {
     // NEXT_PUBLIC_CLIENTVAR: z.string(),
-    NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: z.string(),
-    NEXT_PUBLIC_CLIENT_HOST: z.string().url(),
   },
 
   /**
@@ -51,16 +50,13 @@ export const env = createEnv({
    * middlewares) or client-side so we need to destruct manually.
    */
   runtimeEnv: {
-    DATABASE_URL: process.env.DATABASE_URL,
-    DATABASE_TOKEN: process.env.DATABASE_TOKEN,
     NODE_ENV: process.env.NODE_ENV,
-    CLIENT_HOST: process.env.CLIENT_HOST,
+    DATABASE_URL: process.env.DATABASE_URL,
+    APP_URL: process.env.APP_URL,
+    APP_SECRET: process.env.APP_SECRET,
+    // CLERK
     CLERK_SECRET_KEY: process.env.CLERK_SECRET_KEY,
     WEBHOOK_SECRET_CLERK_USER: process.env.WEBHOOK_SECRET_CLERK_USER,
-    // client
-    NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY:
-      process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY,
-    NEXT_PUBLIC_CLIENT_HOST: process.env.NEXT_PUBLIC_CLIENT_HOST,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially

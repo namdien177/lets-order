@@ -3,12 +3,12 @@ import { type Config } from "drizzle-kit";
 import { env } from "@/env";
 
 export default {
-  schema: "./src/server/db/schema",
-  driver: "turso",
+  schema: "./src/database/schema/_output.ts",
+  dialect: "postgresql",
   dbCredentials: {
     url: env.DATABASE_URL,
-    authToken: env.DATABASE_TOKEN,
   },
-  tablesFilter: ["lets_order_*"],
+  verbose: true,
   out: "./migrations",
+  strict: true,
 } satisfies Config;
