@@ -4,6 +4,7 @@ import { compression } from "elysia-compression";
 import cors from "@elysiajs/cors";
 import logixlysia from "logixlysia";
 import swagger from "@elysiajs/swagger";
+import { OrderModule } from "@/server/order";
 
 const app = new Elysia({ prefix: "/api" })
   .use(compression())
@@ -24,9 +25,16 @@ const app = new Elysia({ prefix: "/api" })
       },
     }),
   )
-  .use(swagger())
+  .use(
+    swagger({
+      path: "/docs",
+    }),
+  )
   .use(AuthModule)
+  .use(OrderModule)
   .listen(3000);
 
 export const GET = app.handle;
 export const POST = app.handle;
+
+export type App = typeof app;

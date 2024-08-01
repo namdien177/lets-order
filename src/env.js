@@ -22,18 +22,18 @@ export const env = createEnv({
     APP_SECRET: z.string(),
     APP_URL: z.string().url(),
     // CLERK
-    CLERK_SECRET_KEY: z.string(),
-    WEBHOOK_SECRET_CLERK_USER: z
-      .string()
-      .nullish()
-      .refine((value) => {
-        // if the NODE_ENV is not production, the webhook secret can be null
-        if (process.env.NODE_ENV !== "production") {
-          console.log("Webhook secret can be null in development");
-          return true;
-        }
-        return !!value;
-      }, "Webhook secret must not be null in production"),
+    // CLERK_SECRET_KEY: z.string(),
+    // WEBHOOK_SECRET_CLERK_USER: z
+    //   .string()
+    //   .nullish()
+    //   .refine((value) => {
+    //     // if the NODE_ENV is not production, the webhook secret can be null
+    //     if (process.env.NODE_ENV !== "production") {
+    //       console.log("Webhook secret can be null in development");
+    //       return true;
+    //     }
+    //     return !!value;
+    //   }, "Webhook secret must not be null in production"),
   },
   clientPrefix: "NEXT_PUBLIC_",
   /**
@@ -43,6 +43,7 @@ export const env = createEnv({
    */
   client: {
     // NEXT_PUBLIC_CLIENTVAR: z.string(),
+    NEXT_PUBLIC_APP_URL: z.string().url(),
   },
 
   /**
@@ -54,6 +55,8 @@ export const env = createEnv({
     DATABASE_URL: process.env.DATABASE_URL,
     APP_URL: process.env.APP_URL,
     APP_SECRET: process.env.APP_SECRET,
+    // CLIENT
+    NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
     // CLERK
     CLERK_SECRET_KEY: process.env.CLERK_SECRET_KEY,
     WEBHOOK_SECRET_CLERK_USER: process.env.WEBHOOK_SECRET_CLERK_USER,
